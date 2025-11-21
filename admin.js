@@ -9,47 +9,9 @@ const Store = {
     set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
 
     init() {
-        if (!localStorage.getItem('teachers')) {
-            this.set('teachers', [
-                { id: 'T001', name: 'John Smith', subject: 'Mathematics' },
-                { id: 'T002', name: 'Sarah Johnson', subject: 'Science' },
-                { id: 'T003', name: 'Emily Davis', subject: 'English' },
-                { id: 'T004', name: 'Michael Brown', subject: 'History' },
-                { id: 'T005', name: 'Jessica Wilson', subject: 'Art' }
-            ]);
-        }
-        if (!localStorage.getItem('classrooms')) {
-            const grades = [6, 7, 8, 9, 10, 11];
-            const sections = ['A', 'B', 'C', 'D', 'E1', 'E2'];
-            const classrooms = [];
-            let idCounter = 1;
-
-            grades.forEach(grade => {
-                sections.forEach(section => {
-                    classrooms.push({
-                        id: `C${String(idCounter++).padStart(3, '0')}`,
-                        name: `Grade ${grade}${section}`,
-                        subject: 'General'
-                    });
-                });
-            });
-            this.set('classrooms', classrooms);
-        }
-        if (!localStorage.getItem('attendance')) {
-            const today = new Date().toISOString().split('T')[0];
-            this.set('attendance', [
-                {
-                    id: Date.now(),
-                    teacherId: 'T001',
-                    teacherName: 'John Smith',
-                    className: 'Grade 9A',
-                    subject: 'Mathematics',
-                    timestamp: new Date(today + 'T08:55:00').getTime(),
-                    date: today,
-                    status: 'On Time'
-                }
-            ]);
-        }
+        // Data initialization is handled by sample-data.js
+        // This just ensures the Store is ready
+        console.log('Store initialized');
     }
 };
 
