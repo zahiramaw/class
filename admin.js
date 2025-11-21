@@ -320,7 +320,14 @@ const app = {
             cBody.innerHTML += `
                 <tr>
                     <td>${c.name}</td>
-                    <td><button onclick="app.showQR('${c.id}')" class="text-blue-600"><i class="fas fa-qrcode"></i></button></td>
+                    <td>
+                        <button onclick="app.showQR('${c.id}')" class="text-blue-600" title="View QR Code">
+                            <i class="fas fa-qrcode"></i>
+                        </button>
+                        <button onclick="app.downloadQR('${c.id}')" class="text-green-600 ml-2" title="Download QR Code">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </td>
                 </tr>
             `;
         });
@@ -392,6 +399,7 @@ const app = {
 
         // Create a full-screen A4 poster overlay
         const overlay = document.createElement('div');
+        overlay.id = 'qr-overlay';
         overlay.style.cssText = `
             position: fixed;
             top: 0;
@@ -406,8 +414,16 @@ const app = {
             padding: 20px;
         `;
 
+        // Close overlay function
+        const closeOverlay = () => {
+            const overlayEl = document.getElementById('qr-overlay');
+            if (overlayEl) {
+                overlayEl.remove();
+            }
+        };
+
         overlay.innerHTML = `
-            <div style="
+            <div id="qr-poster-content" style="
                 background: white;
                 width: 210mm;
                 height: 297mm;
@@ -420,38 +436,66 @@ const app = {
                 position: relative;
                 font-family: 'Inter', sans-serif;
             ">
-                <!-- Close Button -->
-                <button onclick="this.closest('div[style*=fixed]').remove()" style="
-                    position: absolute;
-                    top: 20px;
-                    right: 20px;
-                    background: #800000;
-                    color: white;
-                    border: none;
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    font-size: 20px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-                ">×</button>
-
-                <!-- Print Button -->
-                <button onclick="window.print()" style="
+                <!-- Action Buttons Container -->
+                <div style="
                     position: absolute;
                     top: 20px;
                     left: 20px;
-                    background: #003366;
-                    color: white;
-                    border: none;
-                    padding: 10px 20px;
-                    border-radius: 8px;
-                    font-size: 14px;
-                    cursor: pointer;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                    right: 20px;
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
                 ">
-                    <i class="fas fa-print"></i> Print
-                </button>
+                    <!-- Left buttons -->
+                    <div style="display: flex; gap: 10px;">
+                        <button id="download-qr-btn" style="
+                            background: #059669;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-download"></i> Download QR
+                        </button>
+                        <button onclick="window.print()" style="
+                            background: #003366;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                        ">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                    </div>
+
+                    <!-- Close Button -->
+                    <button id="close-qr-btn" style="
+                        background: #800000;
+                        color: white;
+                        border: none;
+                        width: 40px;
+                        height: 40px;
+                        border-radius: 50%;
+                        font-size: 20px;
+                        cursor: pointer;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">×</button>
+                </div>
 
                 <!-- Header -->
                 <div style="text-align: center; margin-bottom: 40px;">
@@ -544,6 +588,81 @@ const app = {
             width: 300,
             height: 300
         });
+
+        // Add event listeners after DOM is ready
+        setTimeout(() => {
+            // Close button
+            const closeBtn = document.getElementById('close-qr-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', closeOverlay);
+            }
+
+            // Click outside to close
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    closeOverlay();
+                }
+            });
+
+            // ESC key to close
+            const escHandler = (e) => {
+                if (e.key === 'Escape') {
+                    closeOverlay();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            };
+            document.addEventListener('keydown', escHandler);
+
+            // Download button
+            const downloadBtn = document.getElementById('download-qr-btn');
+            if (downloadBtn) {
+                downloadBtn.addEventListener('click', () => {
+                    // Get the QR code canvas
+                    const qrCanvas = overlay.querySelector('#qr-poster-display canvas');
+                    if (qrCanvas) {
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.download = `QR_${cls.name.replace(/\s+/g, '_')}_${cls.id}.png`;
+                        link.href = qrCanvas.toDataURL('image/png');
+                        link.click();
+                    }
+                });
+            }
+        }, 100);
+    },
+
+    downloadQR(classId) {
+        const classrooms = Store.get('classrooms', []);
+        const cls = classrooms.find(c => c.id === classId);
+        if (!cls) return;
+
+        // Create a temporary container for the QR code (hidden)
+        const tempContainer = document.createElement('div');
+        tempContainer.style.display = 'none';
+        tempContainer.id = 'temp-qr-container';
+        document.body.appendChild(tempContainer);
+
+        // Generate QR Code
+        const teacherPageUrl = `https://zahiramaw.github.io/class/teacher/?classroom=${cls.id}`;
+        const qr = new QRCode(tempContainer, {
+            text: teacherPageUrl,
+            width: 512,  // Higher resolution for download
+            height: 512
+        });
+
+        // Wait for QR code to be generated, then download
+        setTimeout(() => {
+            const canvas = tempContainer.querySelector('canvas');
+            if (canvas) {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `QR_${cls.name.replace(/\s+/g, '_')}_${cls.id}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+            // Clean up
+            tempContainer.remove();
+        }, 100);
     },
 
     printQRCodes() {
