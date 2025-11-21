@@ -14,8 +14,48 @@ const Store = {
         attendance: null
     },
 
+    // Optimized fetch for attendance by date
+    async getAttendanceByDate(dateStr) {
+        try {
+            const q = query(collection(db, 'attendance'), where('date', '==', dateStr));
+            const querySnapshot = await getDocs(q);
+            const items = [];
+            querySnapshot.forEach((doc) => {
+                items.push({ id: doc.id, ...doc.data() });
+            });
+            return items;
+        } catch (e) {
+            console.error(`Error getting attendance for ${dateStr}: `, e);
+            return [];
+        }
+    },
+
+    // Optimized fetch for attendance by range (for charts/stats)
+    async getAttendanceByRange(startDateStr, endDateStr) {
+        try {
+            // Note: Firestore range queries on strings work for ISO dates (YYYY-MM-DD)
+            const q = query(collection(db, 'attendance'),
+                where('date', '>=', startDateStr),
+                where('date', '<=', endDateStr)
+            );
+            const querySnapshot = await getDocs(q);
+            const items = [];
+            querySnapshot.forEach((doc) => {
+                items.push({ id: doc.id, ...doc.data() });
+            });
+            return items;
+        } catch (e) {
+            console.error(`Error getting attendance range: `, e);
+            return [];
+        }
+    },
+
     async get(collectionName) {
-        // For attendance, we always fetch fresh data or implement real-time listener later
+        // For attendance, warn if trying to fetch all
+        if (collectionName === 'attendance') {
+            console.warn("Performance Warning: Fetching ALL attendance records. Use getAttendanceByDate instead.");
+        }
+
         // For teachers/classrooms, we can cache briefly
         if (collectionName !== 'attendance' && this.cache[collectionName]) {
             return this.cache[collectionName];
@@ -188,17 +228,17 @@ const app = {
 
         if (!selectedTeacherId) return;
 
-        // Fetch attendance
-        const attendance = await Store.get('attendance');
+        // Fetch attendance for the specific date (for daily detail)
+        const dailyAttendance = await Store.getAttendanceByDate(selectedDate);
+
         const tbody = document.querySelector('#stats-daily-table tbody');
         tbody.innerHTML = '';
 
         const periods = Schedule.periods.filter(p => p.type !== 'break');
 
         periods.forEach(p => {
-            const record = attendance.find(r =>
+            const record = dailyAttendance.find(r =>
                 r.teacherId === selectedTeacherId &&
-                r.date === selectedDate &&
                 String(r.period) === String(p.id)
             );
 
@@ -230,6 +270,7 @@ const app = {
             `;
         });
 
+        // Fetch summary data (weekly or monthly)
         const now = new Date();
         let startDate = new Date();
         if (summaryFilter === 'weekly') {
@@ -238,16 +279,17 @@ const app = {
             startDate.setDate(1); // Start of month
         }
 
-        const summaryRecords = attendance.filter(r =>
-            r.teacherId === selectedTeacherId &&
-            new Date(r.date) >= startDate
-        );
+        const startDateStr = startDate.toLocaleDateString('en-CA');
+        const endDateStr = now.toLocaleDateString('en-CA');
+
+        const summaryRecords = await Store.getAttendanceByRange(startDateStr, endDateStr);
+        const teacherRecords = summaryRecords.filter(r => r.teacherId === selectedTeacherId);
 
         let onTimeCount = 0;
         let late10Count = 0;
         let late20Count = 0;
 
-        summaryRecords.forEach(r => {
+        teacherRecords.forEach(r => {
             const period = Schedule.periods.find(p => String(p.id) === String(r.period));
             if (period && period.type !== 'break') {
                 const rDate = new Date(r.timestamp);
@@ -271,7 +313,8 @@ const app = {
         document.getElementById('matrix-date').value = filterDate;
 
         const classrooms = await Store.get('classrooms');
-        const attendance = await Store.get('attendance');
+        // Optimized: Fetch ONLY the selected date's attendance
+        const attendance = await Store.getAttendanceByDate(filterDate);
 
         const filteredClasses = classrooms.filter(c => !filterGrade || c.name.includes(`Grade ${filterGrade}`));
         filteredClasses.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
@@ -294,7 +337,6 @@ const app = {
             periods.forEach(p => {
                 const record = attendance.find(r =>
                     r.className === cls.name &&
-                    r.date === filterDate &&
                     String(r.period) === String(p.id)
                 );
 
@@ -324,10 +366,10 @@ const app = {
 
     async renderOverview() {
         const teachers = await Store.get('teachers');
-        const attendance = await Store.get('attendance');
         const today = new Date().toLocaleDateString('en-CA');
 
-        const todayRecords = attendance.filter(r => r.date === today);
+        // Optimized: Fetch ONLY today's attendance for stats
+        const todayRecords = await Store.getAttendanceByDate(today);
 
         document.getElementById('stat-on-time').textContent = todayRecords.filter(r => r.status === 'On Time').length;
         document.getElementById('stat-late').textContent = todayRecords.filter(r => r.status === 'Late').length;
@@ -336,7 +378,7 @@ const app = {
         const checkedInTeacherIds = new Set(todayRecords.map(r => r.teacherId));
         document.getElementById('stat-absent').textContent = Math.max(0, teachers.length - checkedInTeacherIds.size);
 
-        // Chart
+        // Chart - Optimized: Fetch last 7 days only
         const ctx = document.getElementById('chart-attendance').getContext('2d');
         if (this.chart) this.chart.destroy();
 
@@ -346,7 +388,10 @@ const app = {
             return d.toISOString().split('T')[0];
         }).reverse();
 
-        const data = last7Days.map(date => attendance.filter(r => r.date === date).length);
+        // Fetch range for chart
+        const rangeRecords = await Store.getAttendanceByRange(last7Days[0], last7Days[6]);
+
+        const data = last7Days.map(date => rangeRecords.filter(r => r.date === date).length);
 
         this.chart = new Chart(ctx, {
             type: 'line',
@@ -362,10 +407,13 @@ const app = {
             options: { responsive: true }
         });
 
-        // Recent Activity
+        // Recent Activity - Use today's records or fetch small batch
+        // For simplicity, we use today's records if available, or just the range records
+        // Ideally we'd query "orderBy timestamp desc limit 5" but that requires an index
+        // Let's use the range records we already have
         const list = document.getElementById('recent-activity-list');
         list.innerHTML = '';
-        const recent = [...attendance].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+        const recent = [...rangeRecords].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
         recent.forEach(r => {
             const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
