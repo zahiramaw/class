@@ -703,22 +703,158 @@
                 const cls = classrooms.find(c => c.id === classId);
                 if (!cls) return;
 
-                // Create a temporary modal for QR
-                const div = document.createElement('div');
-                div.className = 'modal-overlay active';
-                div.innerHTML = `
-                    <div class="modal text-center">
-                        <h3 class="font-bold mb-4">${cls.name} - ${cls.subject}</h3>
-                        <div id="qrcode-display" class="flex justify-center mb-4"></div>
-                        <button onclick="this.closest('.modal-overlay').remove()" class="btn btn-secondary">Close</button>
+                // Create a full-screen A4 poster overlay
+                const overlay = document.createElement('div');
+                overlay.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0,0,0,0.9);
+                    z-index: 10000;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 20px;
+                `;
+
+                overlay.innerHTML = `
+                    <div style="
+                        background: white;
+                        width: 210mm;
+                        height: 297mm;
+                        padding: 40px;
+                        box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        position: relative;
+                        font-family: 'Inter', sans-serif;
+                    ">
+                        <!-- Close Button -->
+                        <button onclick="this.closest('div[style*=fixed]').remove()" style="
+                            position: absolute;
+                            top: 20px;
+                            right: 20px;
+                            background: #800000;
+                            color: white;
+                            border: none;
+                            width: 40px;
+                            height: 40px;
+                            border-radius: 50%;
+                            font-size: 20px;
+                            cursor: pointer;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        ">×</button>
+
+                        <!-- Print Button -->
+                        <button onclick="window.print()" style="
+                            position: absolute;
+                            top: 20px;
+                            left: 20px;
+                            background: #003366;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 8px;
+                            font-size: 14px;
+                            cursor: pointer;
+                            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+                        ">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+
+                        <!-- Header -->
+                        <div style="text-align: center; margin-bottom: 40px;">
+                            <h1 style="
+                                font-size: 48px;
+                                font-weight: 700;
+                                color: #800000;
+                                margin: 0 0 10px 0;
+                            ">ZCM Track</h1>
+                            <p style="
+                                font-size: 20px;
+                                color: #666;
+                                margin: 0;
+                            ">Teacher Attendance System</p>
+                        </div>
+
+                        <!-- Class Name -->
+                        <div style="
+                            background: linear-gradient(135deg, #800000 0%, #003366 100%);
+                            color: white;
+                            padding: 30px 60px;
+                            border-radius: 16px;
+                            margin-bottom: 50px;
+                            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+                        ">
+                            <h2 style="
+                                font-size: 64px;
+                                font-weight: 700;
+                                margin: 0;
+                                text-align: center;
+                            ">${cls.name}</h2>
+                        </div>
+
+                        <!-- QR Code Container -->
+                        <div style="
+                            background: white;
+                            padding: 30px;
+                            border-radius: 20px;
+                            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+                            border: 4px solid #800000;
+                            margin-bottom: 40px;
+                        ">
+                            <div id="qr-poster-display"></div>
+                        </div>
+
+                        <!-- Instructions -->
+                        <div style="
+                            text-align: center;
+                            max-width: 600px;
+                        ">
+                            <h3 style="
+                                font-size: 24px;
+                                font-weight: 600;
+                                color: #333;
+                                margin: 0 0 20px 0;
+                            ">How to Check In</h3>
+                            <ol style="
+                                text-align: left;
+                                font-size: 18px;
+                                color: #666;
+                                line-height: 1.8;
+                                padding-left: 20px;
+                            ">
+                                <li>Open the Teacher Check-in page on your mobile device</li>
+                                <li>Scan this QR code with your camera</li>
+                                <li>Enter your Teacher ID</li>
+                                <li>Confirm your attendance</li>
+                            </ol>
+                        </div>
+
+                        <!-- Footer -->
+                        <div style="
+                            position: absolute;
+                            bottom: 30px;
+                            text-align: center;
+                            color: #999;
+                            font-size: 14px;
+                        ">
+                            Class ID: ${cls.id}
+                        </div>
                     </div>
                 `;
-                document.body.appendChild(div);
 
-                new QRCode(div.querySelector('#qrcode-display'), {
-                    text: JSON.stringify({ id: cls.id, name: cls.name }), // Removed subject from QR
-                    width: 200,
-                    height: 200
+                document.body.appendChild(overlay);
+
+                // Generate QR Code
+                new QRCode(overlay.querySelector('#qr-poster-display'), {
+                    text: JSON.stringify({ id: cls.id, name: cls.name }),
+                    width: 300,
+                    height: 300
                 });
             },
 
