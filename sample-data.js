@@ -116,6 +116,8 @@ const SampleData = {
 
         console.log('✅ Sample data loaded successfully!');
         console.log(`📊 Generated ${teachers.length} teachers, ${classrooms.length} classrooms, and ${attendance.length} attendance records`);
+        console.log(`📅 Dates: ${dates.join(', ')}`);
+        console.log(`🔍 Sample attendance record:`, attendance[0]);
     },
 
     /**
@@ -157,4 +159,10 @@ const SampleData = {
 if (!SampleData.hasSampleData()) {
     console.log('📦 No existing data found. Loading sample data...');
     SampleData.loadSampleData();
+} else {
+    console.log('ℹ️ Sample data already exists. To reload, run: SampleData.clearSampleData(); location.reload()');
+    console.log('📊 Current data stats:', SampleData.getDataStats());
 }
+
+// Make SampleData globally accessible for debugging
+window.SampleData = SampleData;
