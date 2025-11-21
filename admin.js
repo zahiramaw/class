@@ -1,17 +1,98 @@
-// Global callback for Google Auth
-function handleGoogleLogin(response) {
+import { db, collection, getDocs, addDoc, query, where, doc, setDoc, deleteDoc } from './firebase-init.js';
+
+// Global callback for Google Auth (needs to be attached to window because it's called by Google script)
+window.handleGoogleLogin = function (response) {
     app.handleGoogleLogin(response);
-}
+};
 
-// --- DATA STORE ---
+// --- DATA STORE (Firebase Adapter) ---
 const Store = {
-    get: (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal,
-    set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+    // Cache to avoid excessive reads
+    cache: {
+        teachers: null,
+        classrooms: null,
+        attendance: null
+    },
 
-    init() {
-        // Data initialization is handled by sample-data.js
-        // This just ensures the Store is ready
-        console.log('Store initialized');
+    async get(collectionName) {
+        // For attendance, we always fetch fresh data or implement real-time listener later
+        // For teachers/classrooms, we can cache briefly
+        if (collectionName !== 'attendance' && this.cache[collectionName]) {
+            return this.cache[collectionName];
+        }
+
+        try {
+            const querySnapshot = await getDocs(collection(db, collectionName));
+            const items = [];
+            querySnapshot.forEach((doc) => {
+                items.push({ id: doc.id, ...doc.data() });
+            });
+
+            // Update cache
+            this.cache[collectionName] = items;
+            return items;
+        } catch (e) {
+            console.error(`Error getting documents from ${collectionName}: `, e);
+            return [];
+        }
+    },
+
+    async add(collectionName, data) {
+        try {
+            // If data has an ID, use it as document ID, otherwise auto-gen
+            let docRef;
+            if (data.id && collectionName !== 'attendance') {
+                // Use custom ID for teachers/classrooms if provided
+                // Note: Firestore document IDs must be strings
+                await setDoc(doc(db, collectionName, String(data.id)), data);
+                docRef = { id: String(data.id) };
+            } else {
+                docRef = await addDoc(collection(db, collectionName), data);
+            }
+
+            // Invalidate cache
+            this.cache[collectionName] = null;
+            return docRef.id;
+        } catch (e) {
+            console.error("Error adding document: ", e);
+            throw e;
+        }
+    },
+
+    async delete(collectionName, id) {
+        try {
+            await deleteDoc(doc(db, collectionName, String(id)));
+            // Invalidate cache
+            this.cache[collectionName] = null;
+        } catch (e) {
+            console.error("Error deleting document: ", e);
+            throw e;
+        }
+    },
+
+    // Helper to seed initial data if empty
+    async seedIfEmpty() {
+        const teachers = await this.get('teachers');
+        if (teachers.length === 0) {
+            console.log("Seeding initial data...");
+            // Add some default teachers
+            const defaultTeachers = [
+                { id: 'T001', name: 'John Smith', subject: 'Mathematics' },
+                { id: 'T002', name: 'Sarah Johnson', subject: 'Science' }
+            ];
+            for (const t of defaultTeachers) {
+                await this.add('teachers', t);
+            }
+
+            // Add some default classrooms
+            const defaultClassrooms = [
+                { id: 'C001', name: 'Grade 10A', subject: 'General' },
+                { id: 'C002', name: 'Grade 10B', subject: 'General' }
+            ];
+            for (const c of defaultClassrooms) {
+                await this.add('classrooms', c);
+            }
+        }
     }
 };
 
@@ -19,26 +100,27 @@ const Store = {
 const app = {
     chart: null,
 
-    init() {
-        Store.init();
-
+    async init() {
         // Check if already logged in
         if (sessionStorage.getItem('isLoggedIn')) {
             this.navigateTo('dashboard');
         } else {
             this.navigateTo('login');
         }
+
+        // Seed data if needed (background)
+        Store.seedIfEmpty();
     },
 
     navigateTo(viewId) {
         document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
-        document.getElementById(`view-${viewId}`).classList.remove('hidden');
+        const viewEl = document.getElementById(`view-${viewId}`);
+        if (viewEl) viewEl.classList.remove('hidden');
 
         if (viewId === 'dashboard') this.renderDashboard();
     },
 
     // --- AUTH ---
-    // Authorized email addresses (add your authorized emails here)
     authorizedEmails: [
         'raashid.mm@gmail.com',
         'raashidmansoor@gmail.com',
@@ -78,19 +160,21 @@ const app = {
         document.getElementById(`content-${tabId}`).classList.remove('hidden');
         document.getElementById(`tab-${tabId}`).classList.add('active');
 
-        if (tabId === 'overview') this.renderOverview();
-        if (tabId === 'matrix') this.renderMatrix();
-        if (tabId === 'teacher-stats') this.renderTeacherStats();
+        if (tabId === 'overview' || tabId === 'dashboard') this.renderOverview();
+        if (tabId === 'class') this.renderMatrix();
+        if (tabId === 'teachers') this.renderTeacherStats();
         if (tabId === 'admin') this.renderAdmin();
     },
 
-    renderTeacherStats() {
+    async renderTeacherStats() {
         const teacherSelect = document.getElementById('stats-teacher-select');
+
+        // Populate select if empty
         if (teacherSelect.options.length === 1) {
-            const teachers = Store.get('teachers', []);
+            const teachers = await Store.get('teachers');
             teachers.forEach(t => {
                 const opt = document.createElement('option');
-                opt.value = t.id;
+                opt.value = t.id; // This is the document ID (or custom ID)
                 opt.textContent = t.name;
                 teacherSelect.appendChild(opt);
             });
@@ -104,7 +188,8 @@ const app = {
 
         if (!selectedTeacherId) return;
 
-        const attendance = Store.get('attendance', []);
+        // Fetch attendance
+        const attendance = await Store.get('attendance');
         const tbody = document.querySelector('#stats-daily-table tbody');
         tbody.innerHTML = '';
 
@@ -150,7 +235,7 @@ const app = {
         if (summaryFilter === 'weekly') {
             startDate.setDate(now.getDate() - 7);
         } else {
-            startDate.setDate(1);
+            startDate.setDate(1); // Start of month
         }
 
         const summaryRecords = attendance.filter(r =>
@@ -180,13 +265,13 @@ const app = {
         document.getElementById('summary-late-20').textContent = late20Count;
     },
 
-    renderMatrix() {
+    async renderMatrix() {
         const filterGrade = document.getElementById('matrix-grade').value;
         const filterDate = document.getElementById('matrix-date').value || new Date().toLocaleDateString('en-CA');
         document.getElementById('matrix-date').value = filterDate;
 
-        const classrooms = Store.get('classrooms', []);
-        const attendance = Store.get('attendance', []);
+        const classrooms = await Store.get('classrooms');
+        const attendance = await Store.get('attendance');
 
         const filteredClasses = classrooms.filter(c => !filterGrade || c.name.includes(`Grade ${filterGrade}`));
         filteredClasses.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
@@ -234,19 +319,22 @@ const app = {
 
     renderDashboard() {
         this.renderOverview();
-        this.renderAdmin();
+        // this.renderAdmin(); // Don't render admin automatically to save reads
     },
 
-    renderOverview() {
-        const teachers = Store.get('teachers', []);
-        const attendance = Store.get('attendance', []);
+    async renderOverview() {
+        const teachers = await Store.get('teachers');
+        const attendance = await Store.get('attendance');
         const today = new Date().toLocaleDateString('en-CA');
 
         const todayRecords = attendance.filter(r => r.date === today);
 
         document.getElementById('stat-on-time').textContent = todayRecords.filter(r => r.status === 'On Time').length;
         document.getElementById('stat-late').textContent = todayRecords.filter(r => r.status === 'Late').length;
-        document.getElementById('stat-absent').textContent = teachers.length - new Set(todayRecords.map(r => r.teacherId)).size;
+
+        // Calculate absent: Total teachers - Unique teachers who checked in today
+        const checkedInTeacherIds = new Set(todayRecords.map(r => r.teacherId));
+        document.getElementById('stat-absent').textContent = Math.max(0, teachers.length - checkedInTeacherIds.size);
 
         // Chart
         const ctx = document.getElementById('chart-attendance').getContext('2d');
@@ -296,9 +384,9 @@ const app = {
         });
     },
 
-    renderAdmin() {
+    async renderAdmin() {
         // Teachers Table
-        const teachers = Store.get('teachers', []);
+        const teachers = await Store.get('teachers');
         const tBody = document.querySelector('#teachers-table tbody');
         tBody.innerHTML = '';
         teachers.forEach(t => {
@@ -312,7 +400,7 @@ const app = {
         });
 
         // Classrooms Table
-        const classrooms = Store.get('classrooms', []);
+        const classrooms = await Store.get('classrooms');
         const cBody = document.querySelector('#classrooms-table tbody');
         cBody.innerHTML = '';
         classrooms.forEach(c => {
@@ -358,7 +446,7 @@ const app = {
         document.getElementById('modal-overlay').classList.remove('active');
     },
 
-    handleModalSubmit(e) {
+    async handleModalSubmit(e) {
         e.preventDefault();
         const form = document.getElementById('modal-fields');
         const type = form.dataset.type;
@@ -366,33 +454,37 @@ const app = {
         const data = {};
         inputs.forEach(i => data[i.name] = i.value);
 
-        const key = type === 'teacher' ? 'teachers' : 'classrooms';
-        const items = Store.get(key, []);
-        items.push(data);
-        Store.set(key, items);
+        const collectionName = type === 'teacher' ? 'teachers' : 'classrooms';
 
-        this.closeModal();
-        this.renderAdmin();
+        try {
+            await Store.add(collectionName, data);
+            this.closeModal();
+            this.renderAdmin();
+        } catch (err) {
+            alert("Error saving data: " + err.message);
+        }
     },
 
-    deleteItem(key, id) {
+    async deleteItem(collectionName, id) {
         if (confirm('Are you sure?')) {
-            const items = Store.get(key, []);
-            const newItems = items.filter(i => i.id !== id);
-            Store.set(key, newItems);
-            this.renderAdmin();
+            try {
+                await Store.delete(collectionName, id);
+                this.renderAdmin();
+            } catch (err) {
+                alert("Error deleting: " + err.message);
+            }
         }
     },
 
     resetSystem() {
-        if (confirm('DANGER: This will wipe all data. Continue?')) {
+        if (confirm('DANGER: This will wipe all local data (not cloud). Continue?')) {
             localStorage.clear();
             location.reload();
         }
     },
 
-    showQR(classId) {
-        const classrooms = Store.get('classrooms', []);
+    async showQR(classId) {
+        const classrooms = await Store.get('classrooms');
         const cls = classrooms.find(c => c.id === classId);
         if (!cls) return;
 
@@ -630,8 +722,8 @@ const app = {
         }, 100);
     },
 
-    downloadQR(classId) {
-        const classrooms = Store.get('classrooms', []);
+    async downloadQR(classId) {
+        const classrooms = await Store.get('classrooms');
         const cls = classrooms.find(c => c.id === classId);
         if (!cls) return;
 
@@ -689,8 +781,8 @@ const app = {
         }, 200);
     },
 
-    printQRCodes() {
-        const classrooms = Store.get('classrooms', []);
+    async printQRCodes() {
+        const classrooms = await Store.get('classrooms');
         const printArea = document.getElementById('print-area');
         printArea.innerHTML = '';
         printArea.classList.remove('hidden');
@@ -718,6 +810,9 @@ const app = {
         }, 500);
     }
 };
+
+// Expose app globally so HTML onclick handlers work
+window.app = app;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {

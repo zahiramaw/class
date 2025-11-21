@@ -1,6 +1,6 @@
 # ZCM Track - Teacher Attendance System
 
-A modern, browser-based teacher attendance tracking system with QR code scanning, automatic period detection, and comprehensive analytics.
+A modern, cloud-connected teacher attendance tracking system with QR code scanning, automatic period detection, and comprehensive analytics.
 
 ## 🌐 Live URLs
 
@@ -9,6 +9,7 @@ A modern, browser-based teacher attendance tracking system with QR code scanning
 
 ## 📋 Features
 
+- **Cloud Storage** - Data is securely stored in Google Firebase (Firestore)
 - **Automatic Period Detection** - System automatically detects current period based on time
 - **QR Code Scanning** - Teachers scan classroom QR codes to check in
 - **Google Authentication** - Secure admin access with authorized email whitelist
@@ -16,45 +17,6 @@ A modern, browser-based teacher attendance tracking system with QR code scanning
 - **Teacher Statistics** - Detailed attendance tracking per teacher
 - **Clean URLs** - User-friendly URLs without `.html` extensions
 - **Responsive Design** - Works on desktop and mobile devices
-
-## 🧪 Sample Data
-
-The system includes comprehensive test data for demonstration purposes:
-
-### What's Included
-- **10 Teachers** across various subjects
-- **36 Classrooms** (Grades 6-11, Sections A-E2)
-- **Attendance Records** for 3 days (Nov 22, 21, 20, 2024)
-- Realistic distribution:
-  - 70% on-time arrivals
-  - 15% slightly late (6-15 minutes)
-  - 10% very late (16-30 minutes)
-  - 5% absent
-
-### How to Remove Sample Data
-
-**Option 1: Remove the script tag**
-In both `index.html` and `admin/index.html`, remove or comment out this line:
-```html
-<!-- Sample Data (Remove this line to disable test data) -->
-<script src="sample-data.js"></script>
-```
-
-**Option 2: Clear from browser**
-1. Open the Admin Portal
-2. Go to the Admin tab
-3. Click "Reset System" button
-4. Confirm the action
-
-**Option 3: Delete the file**
-Simply delete `sample-data.js` from the project
-
-### How to Customize Sample Data
-
-Edit `sample-data.js` and modify:
-- `teachers` array - Add/remove teachers
-- `dates` array - Change the dates for sample data
-- Status distribution percentages in the attendance generation logic
 
 ## 🔐 Admin Access
 
@@ -64,7 +26,6 @@ Only authorized Gmail accounts can access the admin portal. To add/remove author
 2. Find the `authorizedEmails` array
 3. Add or remove email addresses
 
-
 ## 📁 File Structure
 
 ```
@@ -73,12 +34,11 @@ scanqr/
 │   └── index.html          # Admin portal (clean URL)
 ├── teacher/
 │   └── index.html          # Teacher scanner (clean URL)
-├── admin.js                # Admin portal logic
-├── sample-data.js          # Test data (can be removed)
+├── admin.js                # Admin portal logic (Firebase connected)
+├── firebase-init.js        # Firebase configuration
 ├── schedule.js             # Period definitions
 ├── styles.css              # All styles
-├── index.html              # Root file
-└── teacher.html            # Legacy teacher page
+└── index.html              # Root file
 ```
 
 ## 🚀 Deployment
@@ -96,7 +56,9 @@ Changes will be live at https://zahiramaw.github.io/class/ within a few minutes.
 ## 🛠️ Development
 
 ### Local Testing
-Simply open `index.html` or `admin/index.html` in a browser. The system uses localStorage for data persistence.
+Because the project now uses ES Modules for Firebase, you **must** use a local server to test.
+1. Run `python3 -m http.server` (or use VS Code Live Server)
+2. Open `http://localhost:8000/admin/`
 
 ### Period Configuration
 Edit `schedule.js` to modify:
@@ -112,7 +74,7 @@ All styles are in `styles.css` with CSS variables for easy theming:
 
 ## 📊 Data Storage
 
-All data is stored in browser localStorage:
+All data is stored in **Google Firebase Firestore**:
 - `teachers` - Teacher information
 - `classrooms` - Classroom information
 - `attendance` - Attendance records
@@ -123,10 +85,9 @@ All data is stored in browser localStorage:
 - Ensure your domain is added to authorized origins in Google Cloud Console
 - Check that your email is in the `authorizedEmails` array
 
-**Sample data not loading?**
-- Check browser console for errors
-- Ensure `sample-data.js` is included before `admin.js`
-- Clear localStorage and refresh
+**Data not saving?**
+- Check browser console for Firebase errors
+- Ensure your internet connection is active
 
 **QR codes not scanning?**
 - Ensure camera permissions are granted
