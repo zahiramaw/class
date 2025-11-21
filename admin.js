@@ -99,7 +99,7 @@ const app = {
 
         const selectedTeacherId = teacherSelect.value;
         const dateInput = document.getElementById('stats-date');
-        if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+        if (!dateInput.value) dateInput.value = new Date().toLocaleDateString('en-CA');
         const selectedDate = dateInput.value;
         const summaryFilter = document.getElementById('stats-period-filter').value;
 
@@ -183,7 +183,7 @@ const app = {
 
     renderMatrix() {
         const filterGrade = document.getElementById('matrix-grade').value;
-        const filterDate = document.getElementById('matrix-date').value || new Date().toISOString().split('T')[0];
+        const filterDate = document.getElementById('matrix-date').value || new Date().toLocaleDateString('en-CA');
         document.getElementById('matrix-date').value = filterDate;
 
         const classrooms = Store.get('classrooms', []);
@@ -241,7 +241,7 @@ const app = {
     renderOverview() {
         const teachers = Store.get('teachers', []);
         const attendance = Store.get('attendance', []);
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toLocaleDateString('en-CA');
 
         const todayRecords = attendance.filter(r => r.date === today);
 

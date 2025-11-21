@@ -47,9 +47,9 @@ const SampleData = {
         const dayBefore = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
 
         const dates = [
-            dayBefore.toISOString().split('T')[0],  // 2 days ago (oldest first)
-            yesterday.toISOString().split('T')[0],  // Yesterday
-            today.toISOString().split('T')[0]       // Today
+            dayBefore.toLocaleDateString('en-CA'),  // 2 days ago (oldest first)
+            yesterday.toLocaleDateString('en-CA'),  // Yesterday
+            today.toLocaleDateString('en-CA')       // Today
         ];
 
         // Period times from schedule.js
