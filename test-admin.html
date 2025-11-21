@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Admin - No Auth</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <h1>🧪 Test Admin Dashboard (No Auth Required)</h1>
+
+        <div style="background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2>Sample Data Status</h2>
+            <div id="data-status"></div>
+            <button onclick="reloadData()"
+                style="background: #800000; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px;">
+                🔄 Reload Sample Data
+            </button>
+            <button onclick="clearData()"
+                style="background: #dc2626; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 5px;">
+                🗑️ Clear Data
+            </button>
+        </div>
+
+        <!-- Matrix Tab -->
+        <div style="background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2>📊 Class Period Matrix</h2>
+            <div style="margin-bottom: 20px;">
+                <label>Grade:
+                    <select id="matrix-grade" onchange="renderMatrix()">
+                        <option value="">All Grades</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                    </select>
+                </label>
+                <label style="margin-left: 20px;">Date:
+                    <input type="date" id="matrix-date" onchange="renderMatrix()">
+                </label>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="matrix-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr></tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Teacher Stats Tab -->
+        <div style="background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0;">
+            <h2>👨‍🏫 Teacher Statistics</h2>
+            <div style="margin-bottom: 20px;">
+                <label>Teacher:
+                    <select id="stats-teacher-select" onchange="renderTeacherStats()">
+                        <option value="">Select Teacher</option>
+                    </select>
+                </label>
+                <label style="margin-left: 20px;">Date:
+                    <input type="date" id="stats-date" onchange="renderTeacherStats()">
+                </label>
+            </div>
+            <div id="teacher-stats-content"></div>
+        </div>
+    </div>
+
+    <script src="sample-data.js"></script>
+    <script src="schedule.js"></script>
+    <script>
+        const Store = {
+            get: (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal,
+            set: (key, val) => localStorage.setItem(key, JSON.stringify(val))
+        };
+
+        function updateDataStatus() {
+            const teachers = Store.get('teachers', []);
+            const classrooms = Store.get('classrooms', []);
+            const attendance = Store.get('attendance', []);
+            const dates = [...new Set(attendance.map(a => a.date))].sort();
+
+            document.getElementById('data-status').innerHTML = `
+                <p><strong>Teachers:</strong> ${teachers.length}</p>
+                <p><strong>Classrooms:</strong> ${classrooms.length}</p>
+                <p><strong>Attendance Records:</strong> ${attendance.length}</p>
+                <p><strong>Dates:</strong> ${dates.join(', ') || 'None'}</p>
+            `;
+
+            // Populate teacher dropdown
+            const select = document.getElementById('stats-teacher-select');
+            select.innerHTML = '<option value="">Select Teacher</option>';
+            teachers.forEach(t => {
+                select.innerHTML += `<option value="${t.id}">${t.name}</option>`;
+            });
+
+            // Set default dates
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('matrix-date').value = today;
+            document.getElementById('stats-date').value = today;
+        }
+
+        function reloadData() {
+            SampleData.clearSampleData();
+            SampleData.loadSampleData();
+            updateDataStatus();
+            renderMatrix();
+        }
+
+        function clearData() {
+            SampleData.clearSampleData();
+            updateDataStatus();
+            renderMatrix();
+        }
+
+        function renderMatrix() {
+            const filterGrade = document.getElementById('matrix-grade').value;
+            const filterDate = document.getElementById('matrix-date').value;
+
+            const classrooms = Store.get('classrooms', []);
+            const attendance = Store.get('attendance', []);
+
+            const filteredClasses = classrooms.filter(c => !filterGrade || c.name.includes(`Grade ${filterGrade}`));
+            filteredClasses.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            const tbody = document.querySelector('#matrix-table tbody');
+            const thead = document.querySelector('#matrix-table thead tr');
+
+            const periods = Schedule.periods.filter(p => p.type !== 'break');
+            let headerHtml = '<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Class</th>';
+            periods.forEach(p => {
+                headerHtml += `<th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">P${p.id}</th>`;
+            });
+            thead.innerHTML = headerHtml;
+
+            tbody.innerHTML = '';
+
+            filteredClasses.forEach(cls => {
+                let rowHtml = `<tr><td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${cls.name}</td>`;
+
+                periods.forEach(p => {
+                    const record = attendance.find(r =>
+                        r.className === cls.name &&
+                        r.date === filterDate &&
+                        String(r.period) === String(p.id)
+                    );
+
+                    if (record) {
+                        const time = new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                        const statusColor = record.status === 'Late' ? 'color: #dc2626;' : 'color: #16a34a;';
+                        rowHtml += `
+                            <td style="border: 1px solid #ddd; padding: 8px; font-size: 12px;">
+                                <div style="font-weight: bold;">${record.teacherName}</div>
+                                <div style="${statusColor}">${time}</div>
+                            </td>
+                        `;
+                    } else {
+                        rowHtml += `<td style="border: 1px solid #ddd; padding: 8px;"></td>`;
+                    }
+                });
+
+                rowHtml += `</tr>`;
+                tbody.innerHTML += rowHtml;
+            });
+        }
+
+        function renderTeacherStats() {
+            const teacherId = document.getElementById('stats-teacher-select').value;
+            const date = document.getElementById('stats-date').value;
+
+            if (!teacherId) {
+                document.getElementById('teacher-stats-content').innerHTML = '<p>Please select a teacher</p>';
+                return;
+            }
+
+            const attendance = Store.get('attendance', []);
+            const periods = Schedule.periods.filter(p => p.type !== 'break');
+
+            let html = '<table style="width: 100%; border-collapse: collapse;">';
+            html += '<thead><tr><th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Period</th><th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Time</th><th style="border: 1px solid #ddd; padding: 8px; background: #f5f5f5;">Status</th></tr></thead>';
+            html += '<tbody>';
+
+            periods.forEach(p => {
+                const record = attendance.find(r =>
+                    r.teacherId === teacherId &&
+                    r.date === date &&
+                    String(r.period) === String(p.id)
+                );
+
+                let timeDisplay = '-';
+                let statusDisplay = '-';
+
+                if (record) {
+                    const recordDate = new Date(record.timestamp);
+                    timeDisplay = recordDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                    const statusInfo = Schedule.calculateStatus(p, recordDate);
+                    const diffMins = statusInfo.delayMins;
+
+                    if (diffMins <= 5) {
+                        statusDisplay = '<span style="color: #16a34a; font-weight: bold;">On time</span>';
+                    } else if (diffMins <= 15) {
+                        statusDisplay = `<span style="color: #eab308; font-weight: bold;">${diffMins} minutes late</span>`;
+                    } else {
+                        statusDisplay = `<span style="color: #dc2626; font-weight: bold;">${diffMins} minutes late</span>`;
+                    }
+                }
+
+                html += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${p.name}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">${timeDisplay}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${statusDisplay}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            document.getElementById('teacher-stats-content').innerHTML = html;
+        }
+
+        // Initialize
+        updateDataStatus();
+        renderMatrix();
+    </script>
+</body>
+
+</html>
