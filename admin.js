@@ -490,19 +490,11 @@ const app = {
         let count = 0;
         let idCounter = 1;
 
-        // Find the highest existing ID to avoid conflicts if possible, 
-        // but for simplicity we'll just try to add and let Firestore handle it 
-        // (or overwrite if we use specific IDs).
-        // Let's use a smart ID generation: C + 3 digits.
-
         try {
             for (const grade of grades) {
                 for (const section of sections) {
                     const name = `Grade ${grade}${section}`;
                     const id = `C${String(idCounter++).padStart(3, '0')}`;
-
-                    // Check if exists (optional, but good for preventing overwrites of custom data)
-                    // For now, we just set/overwrite to ensure they exist
                     await Store.add('classrooms', { id, name });
                     count++;
                 }
@@ -512,6 +504,70 @@ const app = {
         } catch (e) {
             console.error(e);
             alert('Error populating classes: ' + e.message);
+        }
+    },
+
+    async generateSampleData() {
+        if (!confirm('This will generate sample teachers and attendance records for testing. Continue?')) return;
+
+        try {
+            // 1. Create Sample Teachers
+            const teachers = [
+                { id: 'T_TEST_01', name: 'Test Teacher 1', subject: 'Math' },
+                { id: 'T_TEST_02', name: 'Test Teacher 2', subject: 'Science' },
+                { id: 'T_TEST_03', name: 'Test Teacher 3', subject: 'English' }
+            ];
+
+            for (const t of teachers) {
+                await Store.add('teachers', t);
+            }
+
+            // 2. Ensure at least one class exists
+            let classrooms = await Store.get('classrooms');
+            if (classrooms.length === 0) {
+                await Store.add('classrooms', { id: 'C_TEST_01', name: 'Test Class 10A' });
+                classrooms = [{ id: 'C_TEST_01', name: 'Test Class 10A' }];
+            }
+
+            // 3. Generate Attendance for last 3 days
+            const today = new Date();
+            const periods = [1, 2, 3, 4]; // Generate for first 4 periods
+
+            for (let i = 0; i < 3; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toLocaleDateString('en-CA');
+
+                for (const t of teachers) {
+                    for (const p of periods) {
+                        // Random status
+                        const isLate = Math.random() > 0.7;
+                        const status = isLate ? 'Late' : 'On Time';
+
+                        // Create record
+                        const record = {
+                            id: Date.now() + Math.random(),
+                            teacherId: t.id,
+                            teacherName: t.name,
+                            className: classrooms[0].name,
+                            subject: t.subject,
+                            period: p,
+                            timestamp: date.getTime(), // Approximate
+                            date: dateStr,
+                            status: status
+                        };
+
+                        await Store.add('attendance', record);
+                    }
+                }
+            }
+
+            alert('Sample data generated! Look for teachers starting with "Test Teacher".');
+            location.reload();
+
+        } catch (e) {
+            console.error(e);
+            alert('Error generating data: ' + e.message);
         }
     },
 
