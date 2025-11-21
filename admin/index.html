@@ -48,10 +48,9 @@
             <div class="container nav-content">
                 <div class="nav-brand"><i class="fas fa-chart-pie"></i> Dashboard</div>
                 <div class="nav-links">
-                    <a onclick="app.switchTab('overview')" class="nav-link active" id="tab-overview">Overview</a>
-                    <a onclick="app.switchTab('matrix')" class="nav-link" id="tab-matrix">Matrix</a>
-                    <a onclick="app.switchTab('teacher-stats')" class="nav-link" id="tab-teacher-stats">Teacher
-                        Stats</a>
+                    <a onclick="app.switchTab('dashboard')" class="nav-link active" id="tab-dashboard">Dashboard</a>
+                    <a onclick="app.switchTab('class')" class="nav-link" id="tab-class">Class</a>
+                    <a onclick="app.switchTab('teachers')" class="nav-link" id="tab-teachers">Teachers</a>
                     <a onclick="app.switchTab('admin')" class="nav-link" id="tab-admin">Admin</a>
                     <a onclick="app.logout()" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i></a>
                 </div>
@@ -60,7 +59,7 @@
 
         <div class="container">
             <!-- Overview Tab -->
-            <div id="content-overview" class="tab-content">
+            <div id="content-dashboard" class="tab-content">
                 <div class="dashboard-grid">
                     <div class="stat-card" style="border-color: #059669;">
                         <div class="stat-value" id="stat-on-time">0</div>
@@ -91,9 +90,9 @@
             </div>
 
             <!-- Matrix Tab -->
-            <div id="content-matrix" class="tab-content hidden">
+            <div id="content-class" class="tab-content hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
-                    <h2 class="text-lg font-bold">Class Period Matrix</h2>
+                    <h2 class="text-lg font-bold">Class</h2>
                     <div class="flex gap-2 flex-wrap">
                         <select id="matrix-grade" class="input" style="width: auto;" onchange="app.renderMatrix()">
                             <option value="">All Grades</option>
@@ -132,7 +131,7 @@
             </div>
 
             <!-- Teacher Stats Tab -->
-            <div id="content-teacher-stats" class="tab-content hidden">
+            <div id="content-teachers" class="tab-content hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <h1 class="text-xl font-bold mb-2">ZCM Track</h1>
                     <p class="text-gray-500 mb-6">Teacher Attendance System</p>
