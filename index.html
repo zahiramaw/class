@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClassTrack - Teacher Attendance</title>
-    
+
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -16,288 +17,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
 
-    <style>
-        :root {
-            --primary: #4F46E5;
-            --primary-dark: #4338ca;
-            --secondary: #10B981;
-            --danger: #EF4444;
-            --warning: #F59E0B;
-            --dark: #1F2937;
-            --light: #F3F4F6;
-            --white: #FFFFFF;
-            --gray-100: #F3F4F6;
-            --gray-200: #E5E7EB;
-            --gray-300: #D1D5DB;
-            --gray-500: #6B7280;
-            --gray-700: #374151;
-            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            --radius: 0.75rem;
-        }
+    <script src="schedule.js"></script>
+    <link rel="stylesheet" href="styles.css">
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--gray-100);
-            color: var(--dark);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* Utilities */
-        .hidden { display: none !important; }
-        .flex { display: flex; }
-        .flex-col { flex-direction: column; }
-        .items-center { align-items: center; }
-        .justify-between { justify-content: space-between; }
-        .justify-center { justify-content: center; }
-        .gap-2 { gap: 0.5rem; }
-        .gap-4 { gap: 1rem; }
-        .p-4 { padding: 1rem; }
-        .p-6 { padding: 1.5rem; }
-        .mt-4 { margin-top: 1rem; }
-        .mb-4 { margin-bottom: 1rem; }
-        .text-center { text-align: center; }
-        .text-sm { font-size: 0.875rem; }
-        .text-lg { font-size: 1.125rem; }
-        .text-xl { font-size: 1.25rem; }
-        .font-bold { font-weight: 700; }
-        .font-semibold { font-weight: 600; }
-        .text-gray-500 { color: var(--gray-500); }
-        .text-primary { color: var(--primary); }
-        .w-full { width: 100%; }
-        .h-screen { height: 100vh; }
-        
-        /* Buttons */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: var(--radius);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: none;
-            font-size: 0.95rem;
-            gap: 0.5rem;
-        }
-        .btn-primary {
-            background-color: var(--primary);
-            color: var(--white);
-            box-shadow: var(--shadow);
-        }
-        .btn-primary:hover { background-color: var(--primary-dark); transform: translateY(-1px); }
-        .btn-secondary {
-            background-color: var(--white);
-            color: var(--gray-700);
-            border: 1px solid var(--gray-300);
-        }
-        .btn-secondary:hover { background-color: var(--gray-100); }
-        .btn-danger {
-            background-color: var(--danger);
-            color: var(--white);
-        }
-        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
-
-        /* Inputs */
-        .input {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid var(--gray-300);
-            border-radius: var(--radius);
-            font-family: inherit;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-        .input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
-        }
-
-        /* Cards */
-        .card {
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
-        }
-
-        /* Layouts */
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        /* Landing Page */
-        #view-landing {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .landing-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            padding: 3rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            text-align: center;
-            max-width: 450px;
-            width: 90%;
-        }
-
-        /* Scanner */
-        #reader {
-            width: 100%;
-            border-radius: var(--radius);
-            overflow: hidden;
-            margin-bottom: 1rem;
-        }
-
-        /* Dashboard */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: var(--white);
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            border-left: 4px solid var(--primary);
-        }
-        .stat-value { font-size: 2rem; font-weight: 700; color: var(--dark); }
-        .stat-label { color: var(--gray-500); font-size: 0.875rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.05em; }
-
-        /* Tables */
-        .table-container {
-            overflow-x: auto;
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-        th {
-            background-color: var(--gray-100);
-            padding: 1rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            font-size: 0.875rem;
-        }
-        td {
-            padding: 1rem;
-            border-top: 1px solid var(--gray-200);
-            font-size: 0.95rem;
-        }
-        tr:hover { background-color: var(--gray-100); }
-        
-        /* Status Badges */
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        .badge-success { background-color: #D1FAE5; color: #065F46; }
-        .badge-warning { background-color: #FEF3C7; color: #92400E; }
-        .badge-danger { background-color: #FEE2E2; color: #991B1B; }
-
-        /* Navigation */
-        .nav-header {
-            background: var(--white);
-            box-shadow: var(--shadow-sm);
-            padding: 1rem 0;
-            margin-bottom: 2rem;
-            position: sticky;
-            top: 0;
-            z-index: 50;
-        }
-        .nav-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .nav-brand {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .nav-links { display: flex; gap: 1rem; }
-        .nav-link {
-            color: var(--gray-500);
-            text-decoration: none;
-            font-weight: 500;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: var(--primary);
-            background-color: #EEF2FF;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-        }
-        .modal-overlay.open { opacity: 1; pointer-events: auto; }
-        .modal {
-            background: var(--white);
-            padding: 2rem;
-            border-radius: var(--radius);
-            width: 90%;
-            max-width: 500px;
-            transform: translateY(20px);
-            transition: transform 0.2s;
-        }
-        .modal-overlay.open .modal { transform: translateY(0); }
-
-        /* QR Print */
-        .qr-print-card {
-            border: 2px dashed var(--gray-300);
-            padding: 1rem;
-            text-align: center;
-            margin-bottom: 1rem;
-            page-break-inside: avoid;
-        }
-        
-        @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; left: 0; top: 0; width: 100%; }
-        }
-    </style>
 </head>
+
 <body>
 
     <!-- LANDING VIEW -->
@@ -308,7 +32,7 @@
             </div>
             <h1 class="text-xl font-bold mb-2">ClassTrack</h1>
             <p class="text-gray-500 mb-6">Teacher Attendance System</p>
-            
+
             <div class="flex flex-col gap-4">
                 <button onclick="app.navigateTo('scanner')" class="btn btn-primary w-full">
                     <i class="fas fa-qrcode"></i> Teacher Check-in
@@ -323,15 +47,17 @@
     <!-- LOGIN VIEW -->
     <div id="view-login" class="view hidden">
         <div class="container h-screen flex items-center justify-center">
-            <div class="card" style="max-width: 400px; width: 100%;">
+            <div class="card login-card">
                 <h2 class="text-xl font-bold mb-4 text-center">Principal Login</h2>
                 <form onsubmit="app.handleLogin(event)">
                     <div class="mb-4">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="login-password" class="input" placeholder="Enter password (admin123)">
+                        <input type="password" id="login-password" class="input"
+                            placeholder="Enter password (admin123)">
                     </div>
                     <button type="submit" class="btn btn-primary w-full">Login</button>
-                    <button type="button" onclick="app.navigateTo('landing')" class="btn btn-secondary w-full mt-2">Back</button>
+                    <button type="button" onclick="app.navigateTo('landing')"
+                        class="btn btn-secondary w-full mt-2">Back</button>
                 </form>
             </div>
         </div>
@@ -345,7 +71,7 @@
                 <button onclick="app.navigateTo('landing')" class="btn btn-sm btn-secondary">Exit</button>
             </div>
         </div>
-        <div class="container" style="max-width: 600px;">
+        <div class="container scanner-container">
             <div class="card">
                 <h2 class="text-lg font-bold mb-4 text-center">Scan Classroom QR</h2>
                 <div id="reader"></div>
@@ -356,8 +82,14 @@
                     </div>
                     <form onsubmit="app.handleCheckIn(event)">
                         <div class="mb-4">
+                            <div class="p-3 bg-blue-50 text-blue-800 rounded text-center">
+                                <span id="auto-period-display" class="font-bold">Detecting Period...</span>
+                            </div>
+                        </div>
+                        <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Teacher ID</label>
-                            <input type="text" id="teacher-id-input" class="input" placeholder="Enter your ID (e.g., T001)" required>
+                            <input type="text" id="teacher-id-input" class="input"
+                                placeholder="Enter your ID (e.g., T001)" required>
                         </div>
                         <button type="submit" class="btn btn-primary w-full">Confirm Check-in</button>
                     </form>
@@ -374,6 +106,9 @@
                 <div class="nav-brand"><i class="fas fa-chart-pie"></i> Dashboard</div>
                 <div class="nav-links">
                     <a onclick="app.switchTab('overview')" class="nav-link active" id="tab-overview">Overview</a>
+                    <a onclick="app.switchTab('matrix')" class="nav-link" id="tab-matrix">Matrix</a>
+                    <a onclick="app.switchTab('teacher-stats')" class="nav-link" id="tab-teacher-stats">Teacher
+                        Stats</a>
                     <a onclick="app.switchTab('attendance')" class="nav-link" id="tab-attendance">Attendance</a>
                     <a onclick="app.switchTab('admin')" class="nav-link" id="tab-admin">Admin</a>
                     <a onclick="app.logout()" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i></a>
@@ -385,13 +120,9 @@
             <!-- Overview Tab -->
             <div id="content-overview" class="tab-content">
                 <div class="dashboard-grid">
-                    <div class="stat-card" style="border-color: var(--primary);">
-                        <div class="stat-value" id="stat-total-teachers">0</div>
-                        <div class="stat-label">Total Teachers</div>
-                    </div>
-                    <div class="stat-card" style="border-color: var(--secondary);">
-                        <div class="stat-value" id="stat-checked-in">0</div>
-                        <div class="stat-label">Checked In Today</div>
+                    <div class="stat-card" style="border-color: #059669;">
+                        <div class="stat-value" id="stat-on-time">0</div>
+                        <div class="stat-label">Checked in on time</div>
                     </div>
                     <div class="stat-card" style="border-color: var(--warning);">
                         <div class="stat-value" id="stat-late">0</div>
@@ -399,7 +130,7 @@
                     </div>
                     <div class="stat-card" style="border-color: var(--danger);">
                         <div class="stat-value" id="stat-absent">0</div>
-                        <div class="stat-label">Pending / Absent</div>
+                        <div class="stat-label">Absent / No Teacher</div>
                     </div>
                 </div>
 
@@ -417,13 +148,123 @@
                 </div>
             </div>
 
+            <!-- Matrix Tab -->
+            <div id="content-matrix" class="tab-content hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
+                    <h2 class="text-lg font-bold">Class Period Matrix</h2>
+                    <div class="flex gap-2 flex-wrap">
+                        <select id="matrix-grade" class="input" style="width: auto;" onchange="app.renderMatrix()">
+                            <option value="">All Grades</option>
+                            <option value="6">Grade 6</option>
+                            <option value="7">Grade 7</option>
+                            <option value="8">Grade 8</option>
+                            <option value="9">Grade 9</option>
+                            <option value="10">Grade 10</option>
+                            <option value="11">Grade 11</option>
+                        </select>
+                        <input type="date" id="matrix-date" class="input" style="width: auto;"
+                            onchange="app.renderMatrix()">
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="matrix-table">
+                        <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>P1</th>
+                                <th>P2</th>
+                                <th>P3</th>
+                                <th>P4</th>
+                                <th>P5</th>
+                                <th>P6</th>
+                                <th>P7</th>
+                                <th>P8</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Teacher Stats Tab -->
+            <div id="content-teacher-stats" class="tab-content hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-lg font-bold">Teacher Stats</h2>
+                    <select id="stats-teacher-select" class="input" style="max-width: 300px;"
+                        onchange="app.renderTeacherStats()">
+                        <option value="" disabled selected>Select a Teacher</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+
+                <div class="dashboard-grid" style="grid-template-columns: 2fr 1fr;">
+                    <!-- Left Panel: Daily Detail -->
+                    <div class="card">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-700">Daily Detail</h3>
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm text-gray-500">Date</label>
+                                <input type="date" id="stats-date" class="input" style="width: auto; padding: 0.5rem;"
+                                    onchange="app.renderTeacherStats()">
+                            </div>
+                        </div>
+                        <div class="table-container" style="box-shadow: none; border: 1px solid var(--gray-200);">
+                            <table id="stats-daily-table">
+                                <thead>
+                                    <tr>
+                                        <th>Period</th>
+                                        <th>Time</th>
+                                        <th>Late by</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel: Summary -->
+                    <div class="card bg-gray-50">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-bold text-gray-700">Summary</h3>
+                            <select id="stats-period-filter" class="input"
+                                style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.8rem;"
+                                onchange="app.renderTeacherStats()">
+                                <option value="weekly">Weekly</option>
+                                <option value="monthly" selected>Monthly</option>
+                            </select>
+                        </div>
+
+                        <div class="flex flex-col gap-6">
+                            <div class="flex items-center gap-4">
+                                <div class="text-4xl font-bold text-dark" id="summary-on-time">0</div>
+                                <div class="text-sm text-gray-500">On time</div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-4xl font-bold text-dark" id="summary-late-10">0</div>
+                                <div class="text-sm text-gray-500">10 Minutes delay</div>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="text-4xl font-bold text-dark" id="summary-late-20">0</div>
+                                <div class="text-sm text-gray-500">20 Minutes delay</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Attendance Tab -->
             <div id="content-attendance" class="tab-content hidden">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-lg font-bold">Attendance Records</h2>
                     <div class="flex gap-2">
-                        <input type="date" id="filter-date" class="input" style="width: auto;" onchange="app.renderAttendanceTable()">
-                        <button onclick="app.exportData()" class="btn btn-secondary"><i class="fas fa-download"></i> Export</button>
+                        <input type="date" id="filter-date" class="input" style="width: auto;"
+                            onchange="app.renderAttendanceTable()">
+                        <button onclick="app.exportData()" class="btn btn-secondary"><i class="fas fa-download"></i>
+                            Export</button>
                     </div>
                 </div>
                 <div class="table-container">
@@ -451,11 +292,19 @@
                     <div class="card">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold">Teachers</h3>
-                            <button onclick="app.openModal('teacher')" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add</button>
+                            <button onclick="app.openModal('teacher')" class="btn btn-sm btn-primary"><i
+                                    class="fas fa-plus"></i> Add</button>
                         </div>
                         <div class="table-container" style="max-height: 300px; overflow-y: auto;">
                             <table id="teachers-table">
-                                <thead><tr><th>ID</th><th>Name</th><th>Subject</th><th>Action</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Subject</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
@@ -465,17 +314,25 @@
                     <div class="card">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold">Classrooms</h3>
-                            <button onclick="app.openModal('classroom')" class="btn btn-sm btn-primary"><i class="fas fa-plus"></i> Add</button>
+                            <button onclick="app.openModal('classroom')" class="btn btn-sm btn-primary"><i
+                                    class="fas fa-plus"></i> Add</button>
                         </div>
                         <div class="table-container" style="max-height: 300px; overflow-y: auto;">
                             <table id="classrooms-table">
-                                <thead><tr><th>Class</th><th>Subject</th><th>QR</th><th>Action</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Class</th>
+                                        <th>Subject</th>
+                                        <th>QR</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
                                 <tbody></tbody>
                             </table>
                         </div>
                     </div>
                 </div>
-                
+
                 <div class="card mt-4">
                     <h3 class="font-bold mb-4">System Management</h3>
                     <div class="flex gap-4">
@@ -511,7 +368,7 @@
         const Store = {
             get: (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal,
             set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
-            
+
             init() {
                 if (!localStorage.getItem('teachers')) {
                     this.set('teachers', [
@@ -523,19 +380,29 @@
                     ]);
                 }
                 if (!localStorage.getItem('classrooms')) {
-                    this.set('classrooms', [
-                        { id: 'C001', name: 'Grade 9A', subject: 'Mathematics', period: '1' },
-                        { id: 'C002', name: 'Grade 10B', subject: 'Science', period: '2' },
-                        { id: 'C003', name: 'Grade 11C', subject: 'English', period: '3' }
-                    ]);
+                    const grades = [6, 7, 8, 9, 10, 11];
+                    const sections = ['A', 'B', 'C', 'D', 'E1', 'E2'];
+                    const classrooms = [];
+                    let idCounter = 1;
+
+                    grades.forEach(grade => {
+                        sections.forEach(section => {
+                            classrooms.push({
+                                id: `C${String(idCounter++).padStart(3, '0')}`,
+                                name: `Grade ${grade}${section}`,
+                                subject: 'General'
+                            });
+                        });
+                    });
+                    this.set('classrooms', classrooms);
                 }
                 if (!localStorage.getItem('attendance')) {
                     // Generate some dummy data for today
                     const today = new Date().toISOString().split('T')[0];
                     this.set('attendance', [
-                        { 
-                            id: Date.now(), 
-                            teacherId: 'T001', 
+                        {
+                            id: Date.now(),
+                            teacherId: 'T001',
                             teacherName: 'John Smith',
                             className: 'Grade 9A',
                             subject: 'Mathematics',
@@ -556,7 +423,7 @@
             init() {
                 Store.init();
                 this.renderDashboard();
-                
+
                 // Check if already logged in
                 if (sessionStorage.getItem('isLoggedIn')) {
                     this.navigateTo('dashboard');
@@ -571,7 +438,7 @@
             navigateTo(viewId) {
                 document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
                 document.getElementById(`view-${viewId}`).classList.remove('hidden');
-                
+
                 if (viewId === 'scanner') this.startScanner();
                 else this.stopScanner();
 
@@ -599,10 +466,10 @@
             startScanner() {
                 document.getElementById('scan-result').classList.add('hidden');
                 document.getElementById('scan-error').classList.add('hidden');
-                
+
                 this.scanner = new Html5Qrcode("reader");
                 this.scanner.start(
-                    { facingMode: "environment" }, 
+                    { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     (decodedText) => {
                         this.handleScanSuccess(decodedText);
@@ -633,9 +500,26 @@
                     if (validClass) {
                         this.currentScannedClass = validClass;
                         this.stopScanner(); // Stop scanning once found
-                        
+
                         document.getElementById('scanned-class-name').textContent = validClass.name;
                         document.getElementById('scanned-subject').textContent = validClass.subject;
+
+                        // Auto-detect period
+                        const currentPeriod = Schedule.getCurrentPeriod();
+                        const periodDisplay = document.getElementById('auto-period-display');
+
+                        if (currentPeriod) {
+                            periodDisplay.textContent = `Current: ${currentPeriod.name} (${currentPeriod.start} - ${currentPeriod.end})`;
+                            periodDisplay.className = "font-bold text-blue-800";
+                            if (currentPeriod.type === 'break') {
+                                periodDisplay.textContent = `Current: ${currentPeriod.name} (No Class)`;
+                                periodDisplay.className = "font-bold text-orange-800";
+                            }
+                        } else {
+                            periodDisplay.textContent = "No Active Period";
+                            periodDisplay.className = "font-bold text-red-800";
+                        }
+
                         document.getElementById('scan-result').classList.remove('hidden');
                         document.getElementById('reader').classList.add('hidden');
                     } else {
@@ -651,6 +535,20 @@
             handleCheckIn(e) {
                 e.preventDefault();
                 const teacherId = document.getElementById('teacher-id-input').value.trim();
+
+                const currentPeriod = Schedule.getCurrentPeriod();
+
+                if (!currentPeriod) {
+                    alert("No active period found. Cannot check in.");
+                    return;
+                }
+
+                if (currentPeriod.type === 'break') {
+                    if (!confirm(`It is currently ${currentPeriod.name}. Do you want to check in anyway? (Will be recorded as ${currentPeriod.name})`)) {
+                        return;
+                    }
+                }
+
                 const teachers = Store.get('teachers', []);
                 const teacher = teachers.find(t => t.id === teacherId);
 
@@ -660,47 +558,211 @@
                 }
 
                 // Validation: Does teacher subject match class subject?
-                // Simplified logic: Just check if subject matches. 
-                // In real world, a teacher might teach multiple subjects, but we'll keep it simple.
                 if (teacher.subject !== this.currentScannedClass.subject) {
-                    if(!confirm(`Warning: Teacher subject (${teacher.subject}) does not match Class subject (${this.currentScannedClass.subject}). Continue?`)) {
+                    if (!confirm(`Warning: Teacher subject (${teacher.subject}) does not match Class subject (${this.currentScannedClass.subject}). Continue?`)) {
                         return;
                     }
                 }
 
                 // Record Attendance
                 const now = new Date();
+                const statusInfo = Schedule.calculateStatus(currentPeriod, now);
+
                 const record = {
                     id: Date.now(),
                     teacherId: teacher.id,
                     teacherName: teacher.name,
                     className: this.currentScannedClass.name,
                     subject: this.currentScannedClass.subject,
+                    period: currentPeriod.id,
                     timestamp: now.getTime(),
                     date: now.toISOString().split('T')[0],
-                    status: now.getMinutes() > 15 ? 'Late' : 'On Time' // Simple late logic: > 15 mins past hour (demo)
+                    status: statusInfo.status
                 };
 
                 const attendance = Store.get('attendance', []);
                 attendance.push(record);
                 Store.set('attendance', attendance);
 
-                alert(`Check-in Successful for ${teacher.name}!`);
+                alert(`Check-in Successful for ${teacher.name} (${currentPeriod.name})!`);
                 this.navigateTo('landing');
                 document.getElementById('teacher-id-input').value = '';
             },
 
             // --- DASHBOARD ---
+
+
             switchTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-                
+
                 document.getElementById(`content-${tabId}`).classList.remove('hidden');
                 document.getElementById(`tab-${tabId}`).classList.add('active');
 
                 if (tabId === 'overview') this.renderOverview();
+                if (tabId === 'matrix') this.renderMatrix();
+                if (tabId === 'teacher-stats') this.renderTeacherStats();
                 if (tabId === 'attendance') this.renderAttendanceTable();
                 if (tabId === 'admin') this.renderAdmin();
+            },
+
+            renderTeacherStats() {
+                // Populate Teacher Dropdown if empty
+                const teacherSelect = document.getElementById('stats-teacher-select');
+                if (teacherSelect.options.length === 1) {
+                    const teachers = Store.get('teachers', []);
+                    teachers.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        teacherSelect.appendChild(opt);
+                    });
+                }
+
+                const selectedTeacherId = teacherSelect.value;
+                const dateInput = document.getElementById('stats-date');
+                if (!dateInput.value) dateInput.value = new Date().toISOString().split('T')[0];
+                const selectedDate = dateInput.value;
+                const summaryFilter = document.getElementById('stats-period-filter').value;
+
+                if (!selectedTeacherId) return;
+
+                const attendance = Store.get('attendance', []);
+
+                // --- LEFT PANEL: Daily Detail ---
+                const tbody = document.querySelector('#stats-daily-table tbody');
+                tbody.innerHTML = '';
+
+                // Use Schedule.periods, filtering out breaks if desired, or showing them
+                const periods = Schedule.periods.filter(p => p.type !== 'break');
+
+                periods.forEach(p => {
+                    const record = attendance.find(r =>
+                        r.teacherId === selectedTeacherId &&
+                        r.date === selectedDate &&
+                        String(r.period) === String(p.id)
+                    );
+
+                    let timeDisplay = '-';
+                    let lateDisplay = '-';
+
+                    if (record) {
+                        const recordDate = new Date(record.timestamp);
+                        timeDisplay = recordDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                        // Calculate Delay using Schedule logic
+                        const statusInfo = Schedule.calculateStatus(p, recordDate);
+                        const diffMins = statusInfo.delayMins;
+
+                        if (diffMins <= 5) {
+                            lateDisplay = '<span class="font-bold text-green-600">On time</span>';
+                        } else if (diffMins <= 15) {
+                            lateDisplay = `<span class="font-bold text-yellow-600">${diffMins} minutes</span>`;
+                        } else {
+                            lateDisplay = `<span class="font-bold text-red-600">${diffMins} minutes</span>`;
+                        }
+                    }
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="font-medium">${p.name}</td>
+                            <td class="font-bold">${timeDisplay}</td>
+                            <td>${lateDisplay}</td>
+                        </tr>
+                    `;
+                });
+
+                // --- RIGHT PANEL: Summary ---
+                const now = new Date();
+                let startDate = new Date();
+                if (summaryFilter === 'weekly') {
+                    startDate.setDate(now.getDate() - 7);
+                } else {
+                    startDate.setDate(1); // Start of month
+                }
+
+                const summaryRecords = attendance.filter(r =>
+                    r.teacherId === selectedTeacherId &&
+                    new Date(r.date) >= startDate
+                );
+
+                let onTimeCount = 0;
+                let late10Count = 0;
+                let late20Count = 0;
+
+                summaryRecords.forEach(r => {
+                    const period = Schedule.periods.find(p => String(p.id) === String(r.period));
+                    if (period && period.type !== 'break') {
+                        const rDate = new Date(r.timestamp);
+                        const statusInfo = Schedule.calculateStatus(period, rDate);
+                        const diffMins = statusInfo.delayMins;
+
+                        if (diffMins <= 5) onTimeCount++;
+                        else if (diffMins <= 15) late10Count++;
+                        else late20Count++;
+                    }
+                });
+
+                document.getElementById('summary-on-time').textContent = onTimeCount;
+                document.getElementById('summary-late-10').textContent = late10Count;
+                document.getElementById('summary-late-20').textContent = late20Count;
+            },
+
+            renderMatrix() {
+                const filterGrade = document.getElementById('matrix-grade').value;
+                const filterDate = document.getElementById('matrix-date').value || new Date().toISOString().split('T')[0];
+                document.getElementById('matrix-date').value = filterDate; // Ensure date input is set
+
+                const classrooms = Store.get('classrooms', []);
+                const attendance = Store.get('attendance', []);
+
+                // Filter classrooms
+                const filteredClasses = classrooms.filter(c => !filterGrade || c.name.includes(`Grade ${filterGrade}`));
+
+                // Sort classes naturally (6A, 6B... 10A)
+                filteredClasses.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+                const tbody = document.querySelector('#matrix-table tbody');
+                const thead = document.querySelector('#matrix-table thead tr');
+
+                // Dynamic Headers based on Schedule
+                const periods = Schedule.periods.filter(p => p.type !== 'break');
+                let headerHtml = '<th>Class</th>';
+                periods.forEach(p => {
+                    headerHtml += `<th>P${p.id}</th>`;
+                });
+                thead.innerHTML = headerHtml;
+
+                tbody.innerHTML = '';
+
+                filteredClasses.forEach(cls => {
+                    let rowHtml = `<tr><td class="font-bold">${cls.name}</td>`;
+
+                    periods.forEach(p => {
+                        // Find record for this class, period, and date
+                        const record = attendance.find(r =>
+                            r.className === cls.name &&
+                            r.date === filterDate &&
+                            String(r.period) === String(p.id)
+                        );
+
+                        if (record) {
+                            const time = new Date(record.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            const statusColor = record.status === 'Late' ? 'text-red-600' : 'text-green-600';
+                            rowHtml += `
+                                <td class="text-xs">
+                                    <div class="font-bold">${record.teacherName}</div>
+                                    <div class="${statusColor}">${time}</div>
+                                </td>
+                            `;
+                        } else {
+                            rowHtml += `<td></td>`;
+                        }
+                    });
+
+                    rowHtml += `</tr>`;
+                    tbody.innerHTML += rowHtml;
+                });
             },
 
             renderDashboard() {
@@ -713,20 +775,20 @@
                 const teachers = Store.get('teachers', []);
                 const attendance = Store.get('attendance', []);
                 const today = new Date().toISOString().split('T')[0];
-                
+
                 const todayRecords = attendance.filter(r => r.date === today);
-                
+
                 // Stats
-                document.getElementById('stat-total-teachers').textContent = teachers.length;
-                document.getElementById('stat-checked-in').textContent = new Set(todayRecords.map(r => r.teacherId)).size;
+                // Stats
+                document.getElementById('stat-on-time').textContent = todayRecords.filter(r => r.status === 'On Time').length;
                 document.getElementById('stat-late').textContent = todayRecords.filter(r => r.status === 'Late').length;
                 document.getElementById('stat-absent').textContent = teachers.length - new Set(todayRecords.map(r => r.teacherId)).size;
 
                 // Recent Activity
                 const recentList = document.getElementById('recent-activity-list');
                 recentList.innerHTML = '';
-                [...attendance].sort((a,b) => b.timestamp - a.timestamp).slice(0, 5).forEach(r => {
-                    const time = new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                [...attendance].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5).forEach(r => {
+                    const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     recentList.innerHTML += `
                         <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
                             <div>
@@ -782,14 +844,14 @@
                 const filterDate = document.getElementById('filter-date').value;
                 const attendance = Store.get('attendance', []);
                 const filtered = attendance.filter(r => !filterDate || r.date === filterDate);
-                
+
                 const tbody = document.querySelector('#attendance-table tbody');
                 tbody.innerHTML = '';
-                
-                filtered.sort((a,b) => b.timestamp - a.timestamp).forEach(r => {
-                    const time = new Date(r.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                filtered.sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+                    const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                     const badgeClass = r.status === 'Late' ? 'badge-warning' : 'badge-success';
-                    
+
                     tbody.innerHTML += `
                         <tr>
                             <td>${time}</td>
@@ -846,7 +908,7 @@
                 const title = document.getElementById('modal-title');
                 const fields = document.getElementById('modal-fields');
                 const form = document.getElementById('modal-form');
-                
+
                 modal.classList.add('open');
                 form.dataset.type = type;
 
@@ -893,7 +955,7 @@
             },
 
             deleteItem(collection, id) {
-                if(confirm('Are you sure?')) {
+                if (confirm('Are you sure?')) {
                     const items = Store.get(collection, []);
                     const newItems = items.filter(i => i.id !== id);
                     Store.set(collection, newItems);
@@ -903,7 +965,7 @@
             },
 
             resetSystem() {
-                if(confirm('WARNING: This will delete ALL data. Are you sure?')) {
+                if (confirm('WARNING: This will delete ALL data. Are you sure?')) {
                     localStorage.clear();
                     location.reload();
                 }
@@ -917,7 +979,7 @@
                     const time = new Date(r.timestamp).toLocaleTimeString();
                     csv += `${r.date},${time},${r.teacherName},${r.className},${r.subject},${r.status}\n`;
                 });
-                
+
                 const blob = new Blob([csv], { type: 'text/csv' });
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -933,13 +995,13 @@
 
                 // Create a temporary modal to show QR
                 const qrData = JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject });
-                
+
                 // We'll reuse the modal overlay but inject custom content
                 const modal = document.getElementById('modal-overlay');
                 const fields = document.getElementById('modal-fields');
                 document.getElementById('modal-title').textContent = `QR Code: ${cls.name}`;
                 document.getElementById('modal-form').onsubmit = (e) => { e.preventDefault(); this.closeModal(); }; // Just close
-                
+
                 fields.innerHTML = `<div id="qrcode-display" class="flex justify-center p-4"></div>`;
                 modal.classList.add('open');
 
@@ -968,7 +1030,7 @@
                         <div id="qr-${cls.id}" style="display:inline-block; margin: 10px;"></div>
                     `;
                     printArea.appendChild(div);
-                    
+
                     new QRCode(document.getElementById(`qr-${cls.id}`), {
                         text: JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject }),
                         width: 150,
@@ -985,4 +1047,5 @@
         App.init();
     </script>
 </body>
+
 </html>
