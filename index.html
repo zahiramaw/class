@@ -352,14 +352,28 @@
             },
 
             // --- AUTH ---
+            // Authorized email addresses (add your authorized emails here)
+            authorizedEmails: [
+                'hattelands@gmail.com',  // Add your authorized emails here
+                // 'another.email@gmail.com',
+                // 'admin@example.com'
+            ],
+
             handleGoogleLogin(response) {
                 console.log("Google Auth Response:", response);
                 if (response.credential) {
                     const payload = JSON.parse(atob(response.credential.split('.')[1]));
-                    console.log("Logged in as:", payload.email);
+                    const userEmail = payload.email;
+                    console.log("Login attempt from:", userEmail);
+
+                    // Check if email is authorized
+                    if (!this.authorizedEmails.includes(userEmail)) {
+                        alert(`Access Denied!\n\nYour email (${userEmail}) is not authorized to access this system.\n\nPlease contact the administrator.`);
+                        return;
+                    }
 
                     sessionStorage.setItem('isLoggedIn', 'true');
-                    sessionStorage.setItem('userEmail', payload.email);
+                    sessionStorage.setItem('userEmail', userEmail);
                     this.navigateTo('dashboard');
                 }
             },
