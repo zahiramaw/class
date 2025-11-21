@@ -508,61 +508,104 @@ const app = {
     },
 
     async generateSampleData() {
-        if (!confirm('This will generate sample teachers and attendance records for testing. Continue?')) return;
+        if (!confirm('This will generate comprehensive sample data (Teachers, Classes, Attendance) for the last 7 days. Continue?')) return;
 
         try {
             // 1. Create Sample Teachers
             const teachers = [
                 { id: 'T_TEST_01', name: 'Test Teacher 1', subject: 'Math' },
                 { id: 'T_TEST_02', name: 'Test Teacher 2', subject: 'Science' },
-                { id: 'T_TEST_03', name: 'Test Teacher 3', subject: 'English' }
+                { id: 'T_TEST_03', name: 'Test Teacher 3', subject: 'English' },
+                { id: 'T_TEST_04', name: 'Test Teacher 4', subject: 'History' },
+                { id: 'T_TEST_05', name: 'Test Teacher 5', subject: 'Art' }
             ];
 
             for (const t of teachers) {
-                await Store.add('teachers', t);
+                // Use setDoc to ensure we don't create duplicates if run multiple times
+                await setDoc(doc(db, 'teachers', t.id), t);
             }
 
-            // 2. Ensure at least one class exists
+            // 2. Ensure Classrooms exist
             let classrooms = await Store.get('classrooms');
-            if (classrooms.length === 0) {
-                await Store.add('classrooms', { id: 'C_TEST_01', name: 'Test Class 10A' });
-                classrooms = [{ id: 'C_TEST_01', name: 'Test Class 10A' }];
+            if (classrooms.length < 5) {
+                // If not enough classes, add some test ones
+                const testClasses = [
+                    { id: 'C_TEST_01', name: 'Grade 10A' },
+                    { id: 'C_TEST_02', name: 'Grade 10B' },
+                    { id: 'C_TEST_03', name: 'Grade 11A' },
+                    { id: 'C_TEST_04', name: 'Grade 9C' }
+                ];
+                for (const c of testClasses) {
+                    await setDoc(doc(db, 'classrooms', c.id), c);
+                }
+                classrooms = [...classrooms, ...testClasses];
             }
 
-            // 3. Generate Attendance for last 3 days
+            // 3. Generate Attendance for last 7 days
             const today = new Date();
-            const periods = [1, 2, 3, 4]; // Generate for first 4 periods
+            const periods = Schedule.periods.filter(p => p.type !== 'break'); // Only class periods
 
-            for (let i = 0; i < 3; i++) {
+            let recordCount = 0;
+
+            for (let i = 0; i < 7; i++) {
                 const date = new Date(today);
                 date.setDate(date.getDate() - i);
                 const dateStr = date.toLocaleDateString('en-CA');
 
+                // Skip weekends (0 = Sunday, 6 = Saturday)
+                if (date.getDay() === 0 || date.getDay() === 6) continue;
+
                 for (const t of teachers) {
                     for (const p of periods) {
-                        // Random status
-                        const isLate = Math.random() > 0.7;
-                        const status = isLate ? 'Late' : 'On Time';
+                        // 15% chance of being Absent (no record)
+                        if (Math.random() < 0.15) continue;
+
+                        // Randomly assign a classroom
+                        const cls = classrooms[Math.floor(Math.random() * classrooms.length)];
+
+                        // Determine Status & Time
+                        const rand = Math.random();
+                        let delayMinutes = 0;
+                        let status = 'On Time';
+
+                        if (rand < 0.7) {
+                            // 70% On Time (0-5 mins late)
+                            delayMinutes = Math.floor(Math.random() * 5);
+                        } else if (rand < 0.9) {
+                            // 20% Late (6-15 mins late)
+                            delayMinutes = 6 + Math.floor(Math.random() * 10);
+                            status = 'Late';
+                        } else {
+                            // 10% Very Late (16-30 mins late)
+                            delayMinutes = 16 + Math.floor(Math.random() * 15);
+                            status = 'Late';
+                        }
+
+                        // Calculate timestamp
+                        const [startH, startM] = p.start.split(':').map(Number);
+                        const recordTime = new Date(date);
+                        recordTime.setHours(startH, startM + delayMinutes, 0);
 
                         // Create record
                         const record = {
                             id: Date.now() + Math.random(),
                             teacherId: t.id,
                             teacherName: t.name,
-                            className: classrooms[0].name,
+                            className: cls.name,
                             subject: t.subject,
-                            period: p,
-                            timestamp: date.getTime(), // Approximate
+                            period: p.id,
+                            timestamp: recordTime.getTime(),
                             date: dateStr,
                             status: status
                         };
 
                         await Store.add('attendance', record);
+                        recordCount++;
                     }
                 }
             }
 
-            alert('Sample data generated! Look for teachers starting with "Test Teacher".');
+            alert(`Generated ${recordCount} attendance records for the last week!`);
             location.reload();
 
         } catch (e) {
