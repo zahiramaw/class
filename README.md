@@ -64,9 +64,6 @@ Only authorized Gmail accounts can access the admin portal. To add/remove author
 2. Find the `authorizedEmails` array
 3. Add or remove email addresses
 
-Current authorized emails:
-- raashid.mm@gmail.com
-- raashidmansoor@gmail.com
 
 ## 📁 File Structure
 
