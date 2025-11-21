@@ -43,10 +43,13 @@ const SampleData = {
         // Generate comprehensive attendance data for 3 days (today, yesterday, day before)
         const attendance = [];
         const today = new Date();
+        const yesterday = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+        const dayBefore = new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000);
+
         const dates = [
-            today.toISOString().split('T')[0],  // Today
-            new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],  // Yesterday
-            new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]  // 2 days ago
+            dayBefore.toISOString().split('T')[0],  // 2 days ago (oldest first)
+            yesterday.toISOString().split('T')[0],  // Yesterday
+            today.toISOString().split('T')[0]       // Today
         ];
 
         // Period times from schedule.js
