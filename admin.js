@@ -537,9 +537,10 @@ const app = {
 
         document.body.appendChild(overlay);
 
-        // Generate QR Code
+        // Generate QR Code with URL
+        const teacherPageUrl = `https://zahiramaw.github.io/class/teacher/?classroom=${cls.id}`;
         new QRCode(overlay.querySelector('#qr-poster-display'), {
-            text: JSON.stringify({ id: cls.id, name: cls.name }),
+            text: teacherPageUrl,
             width: 300,
             height: 300
         });
@@ -560,8 +561,9 @@ const app = {
             `;
             printArea.appendChild(container);
 
+            const teacherPageUrl = `https://zahiramaw.github.io/class/teacher/?classroom=${cls.id}`;
             new QRCode(container.querySelector('.qr-code'), {
-                text: JSON.stringify({ id: cls.id, name: cls.name }),
+                text: teacherPageUrl,
                 width: 150,
                 height: 150
             });
