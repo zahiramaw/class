@@ -41,9 +41,8 @@ const app = {
     // Authorized email addresses (add your authorized emails here)
     authorizedEmails: [
         'raashid.mm@gmail.com',
-        'raashidmansoor@gmail.com',  // Add your authorized emails here
-        // 'another.email@gmail.com',
-        // 'admin@example.com'
+        'raashidmansoor@gmail.com',
+        'relaugh@gmail.com',
     ],
 
     handleGoogleLogin(response) {
