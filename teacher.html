@@ -116,7 +116,7 @@
                         this.stopScanner();
 
                         document.getElementById('scanned-class-name').textContent = validClass.name;
-                        document.getElementById('scanned-subject').textContent = validClass.subject;
+                        document.getElementById('scanned-subject').textContent = validClass.subject; // Subject comes from stored data, not QR
 
                         // Auto-detect period
                         const currentPeriod = Schedule.getCurrentPeriod();

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClassTrack - Principal Portal</title>
+    <title>ZCM Track - Administrator</title>
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
     <div id="view-login" class="view">
         <div class="container h-screen flex items-center justify-center">
             <div class="card login-card">
-                <h2 class="text-xl font-bold mb-4 text-center">Principal Login</h2>
+                <h2 class="text-xl font-bold mb-4 text-center">ZCM Track - Administrator</h2>
                 <div class="flex flex-col items-center gap-4">
                     <div id="g_id_onload"
                         data-client_id="840411102964-5vqmoroj9jdcthf099ikvadofcgveefv.apps.googleusercontent.com"
@@ -134,7 +134,8 @@
             <!-- Teacher Stats Tab -->
             <div id="content-teacher-stats" class="tab-content hidden">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-lg font-bold">Teacher Stats</h2>
+                    <h1 class="text-xl font-bold mb-2">ZCM Track</h1>
+                    <p class="text-gray-500 mb-6">Teacher Attendance System</p>
                     <select id="stats-teacher-select" class="input" style="max-width: 300px;"
                         onchange="app.renderTeacherStats()">
                         <option value="" disabled selected>Select a Teacher</option>
@@ -216,7 +217,6 @@
                                         <th>ID</th>
                                         <th>Name</th>
                                         <th>Subject</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -228,17 +228,13 @@
                     <div class="card">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="font-bold">Classrooms</h3>
-                            <button onclick="app.openModal('classroom')" class="btn btn-sm btn-primary"><i
-                                    class="fas fa-plus"></i> Add</button>
                         </div>
                         <div class="table-container" style="max-height: 300px; overflow-y: auto;">
                             <table id="classrooms-table">
                                 <thead>
                                     <tr>
                                         <th>Class</th>
-                                        <th>Subject</th>
                                         <th>QR</th>
-                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -611,7 +607,6 @@
                             <td>${t.id}</td>
                             <td>${t.name}</td>
                             <td>${t.subject}</td>
-                            <td><button onclick="app.deleteItem('teachers', '${t.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
                         </tr>
                     `;
                 });
@@ -624,9 +619,7 @@
                     cBody.innerHTML += `
                         <tr>
                             <td>${c.name}</td>
-                            <td>${c.subject}</td>
                             <td><button onclick="app.showQR('${c.id}')" class="text-blue-600"><i class="fas fa-qrcode"></i></button></td>
-                            <td><button onclick="app.deleteItem('classrooms', '${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
                         </tr>
                     `;
                 });
@@ -709,7 +702,7 @@
                 document.body.appendChild(div);
 
                 new QRCode(div.querySelector('#qrcode-display'), {
-                    text: JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject }),
+                    text: JSON.stringify({ id: cls.id, name: cls.name }), // Removed subject from QR
                     width: 200,
                     height: 200
                 });
@@ -726,13 +719,12 @@
                     container.className = 'qr-print-item';
                     container.innerHTML = `
                         <h3>${cls.name}</h3>
-                        <p>${cls.subject}</p>
                         <div class="qr-code"></div>
                     `;
                     printArea.appendChild(container);
 
                     new QRCode(container.querySelector('.qr-code'), {
-                        text: JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject }),
+                        text: JSON.stringify({ id: cls.id, name: cls.name }), // Removed subject from QR
                         width: 150,
                         height: 150
                     });
