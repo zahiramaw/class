@@ -40,9 +40,14 @@ const SampleData = {
             });
         });
 
-        // Generate comprehensive attendance data for 3 days (Nov 22, 21, 20)
+        // Generate comprehensive attendance data for 3 days (today, yesterday, day before)
         const attendance = [];
-        const dates = ['2024-11-22', '2024-11-21', '2024-11-20'];
+        const today = new Date();
+        const dates = [
+            today.toISOString().split('T')[0],  // Today
+            new Date(today.getTime() - 24 * 60 * 60 * 1000).toISOString().split('T')[0],  // Yesterday
+            new Date(today.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]  // 2 days ago
+        ];
 
         // Period times from schedule.js
         const periods = [
