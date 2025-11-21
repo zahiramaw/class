@@ -4,18 +4,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClassTrack - Teacher Attendance</title>
+    <title>ClassTrack - Principal Portal</title>
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 
     <!-- Libraries -->
-    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <script src="schedule.js"></script>
     <link rel="stylesheet" href="styles.css">
@@ -24,77 +24,20 @@
 
 <body>
 
-    <!-- LANDING VIEW -->
-    <div id="view-landing" class="view">
-        <div class="landing-card">
-            <div class="mb-4">
-                <i class="fas fa-school fa-3x text-primary"></i>
-            </div>
-            <h1 class="text-xl font-bold mb-2">ClassTrack</h1>
-            <p class="text-gray-500 mb-6">Teacher Attendance System</p>
-
-            <div class="flex flex-col gap-4">
-                <button onclick="app.navigateTo('scanner')" class="btn btn-primary w-full">
-                    <i class="fas fa-qrcode"></i> Teacher Check-in
-                </button>
-                <button onclick="app.navigateTo('login')" class="btn btn-secondary w-full">
-                    <i class="fas fa-user-shield"></i> Principal Dashboard
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- LOGIN VIEW -->
-    <div id="view-login" class="view hidden">
+    <div id="view-login" class="view">
         <div class="container h-screen flex items-center justify-center">
             <div class="card login-card">
                 <h2 class="text-xl font-bold mb-4 text-center">Principal Login</h2>
-                <form onsubmit="app.handleLogin(event)">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                        <input type="password" id="login-password" class="input"
-                            placeholder="Enter password (admin123)">
+                <div class="flex flex-col items-center gap-4">
+                    <div id="g_id_onload"
+                        data-client_id="840411102964-5vqmoroj9jdcthf099ikvadofcgveefv.apps.googleusercontent.com"
+                        data-callback="handleGoogleLogin" data-auto_prompt="false">
                     </div>
-                    <button type="submit" class="btn btn-primary w-full">Login</button>
-                    <button type="button" onclick="app.navigateTo('landing')"
-                        class="btn btn-secondary w-full mt-2">Back</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- SCANNER VIEW -->
-    <div id="view-scanner" class="view hidden">
-        <div class="nav-header">
-            <div class="container nav-content">
-                <div class="nav-brand"><i class="fas fa-school"></i> ClassTrack</div>
-                <button onclick="app.navigateTo('landing')" class="btn btn-sm btn-secondary">Exit</button>
-            </div>
-        </div>
-        <div class="container scanner-container">
-            <div class="card">
-                <h2 class="text-lg font-bold mb-4 text-center">Scan Classroom QR</h2>
-                <div id="reader"></div>
-                <div id="scan-result" class="hidden mt-4">
-                    <div class="p-4 bg-green-50 border border-green-200 rounded mb-4 text-center">
-                        <p class="text-green-800 font-bold" id="scanned-class-name">Class 9A</p>
-                        <p class="text-sm text-green-600" id="scanned-subject">Mathematics</p>
+                    <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline"
+                        data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left">
                     </div>
-                    <form onsubmit="app.handleCheckIn(event)">
-                        <div class="mb-4">
-                            <div class="p-3 bg-blue-50 text-blue-800 rounded text-center">
-                                <span id="auto-period-display" class="font-bold">Detecting Period...</span>
-                            </div>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Teacher ID</label>
-                            <input type="text" id="teacher-id-input" class="input"
-                                placeholder="Enter your ID (e.g., T001)" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-full">Confirm Check-in</button>
-                    </form>
                 </div>
-                <div id="scan-error" class="hidden mt-4 p-4 bg-red-50 text-red-700 rounded text-center"></div>
             </div>
         </div>
     </div>
@@ -109,7 +52,6 @@
                     <a onclick="app.switchTab('matrix')" class="nav-link" id="tab-matrix">Matrix</a>
                     <a onclick="app.switchTab('teacher-stats')" class="nav-link" id="tab-teacher-stats">Teacher
                         Stats</a>
-                    <a onclick="app.switchTab('attendance')" class="nav-link" id="tab-attendance">Attendance</a>
                     <a onclick="app.switchTab('admin')" class="nav-link" id="tab-admin">Admin</a>
                     <a onclick="app.logout()" class="nav-link text-danger"><i class="fas fa-sign-out-alt"></i></a>
                 </div>
@@ -179,6 +121,7 @@
                                 <th>P6</th>
                                 <th>P7</th>
                                 <th>P8</th>
+                                <th>P9</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -253,35 +196,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- Attendance Tab -->
-            <div id="content-attendance" class="tab-content hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-lg font-bold">Attendance Records</h2>
-                    <div class="flex gap-2">
-                        <input type="date" id="filter-date" class="input" style="width: auto;"
-                            onchange="app.renderAttendanceTable()">
-                        <button onclick="app.exportData()" class="btn btn-secondary"><i class="fas fa-download"></i>
-                            Export</button>
-                    </div>
-                </div>
-                <div class="table-container">
-                    <table id="attendance-table">
-                        <thead>
-                            <tr>
-                                <th>Time</th>
-                                <th>Teacher</th>
-                                <th>Class</th>
-                                <th>Subject</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Populated by JS -->
-                        </tbody>
-                    </table>
                 </div>
             </div>
 
@@ -364,6 +278,11 @@
     <div id="print-area" class="hidden"></div>
 
     <script>
+        // Global callback for Google Auth
+        function handleGoogleLogin(response) {
+            app.handleGoogleLogin(response);
+        }
+
         // --- DATA STORE ---
         const Store = {
             get: (key, defaultVal) => JSON.parse(localStorage.getItem(key)) || defaultVal,
@@ -397,7 +316,6 @@
                     this.set('classrooms', classrooms);
                 }
                 if (!localStorage.getItem('attendance')) {
-                    // Generate some dummy data for today
                     const today = new Date().toISOString().split('T')[0];
                     this.set('attendance', [
                         {
@@ -416,182 +334,47 @@
         };
 
         // --- APP LOGIC ---
-        const App = {
-            scanner: null,
-            currentScannedClass: null,
+        const app = {
+            chart: null,
 
             init() {
                 Store.init();
-                this.renderDashboard();
 
                 // Check if already logged in
                 if (sessionStorage.getItem('isLoggedIn')) {
                     this.navigateTo('dashboard');
                 } else {
-                    this.navigateTo('landing');
+                    this.navigateTo('login');
                 }
-
-                // Set today's date in filter
-                document.getElementById('filter-date').value = new Date().toISOString().split('T')[0];
             },
 
             navigateTo(viewId) {
                 document.querySelectorAll('.view').forEach(el => el.classList.add('hidden'));
                 document.getElementById(`view-${viewId}`).classList.remove('hidden');
 
-                if (viewId === 'scanner') this.startScanner();
-                else this.stopScanner();
-
                 if (viewId === 'dashboard') this.renderDashboard();
             },
 
             // --- AUTH ---
-            handleLogin(e) {
-                e.preventDefault();
-                const password = document.getElementById('login-password').value;
-                if (password === 'admin123') {
+            handleGoogleLogin(response) {
+                console.log("Google Auth Response:", response);
+                if (response.credential) {
+                    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+                    console.log("Logged in as:", payload.email);
+
                     sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('userEmail', payload.email);
                     this.navigateTo('dashboard');
-                } else {
-                    alert('Invalid password');
                 }
             },
 
             logout() {
                 sessionStorage.removeItem('isLoggedIn');
-                this.navigateTo('landing');
-            },
-
-            // --- SCANNER ---
-            startScanner() {
-                document.getElementById('scan-result').classList.add('hidden');
-                document.getElementById('scan-error').classList.add('hidden');
-
-                this.scanner = new Html5Qrcode("reader");
-                this.scanner.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText) => {
-                        this.handleScanSuccess(decodedText);
-                    },
-                    (errorMessage) => {
-                        // ignore errors
-                    }
-                ).catch(err => console.error(err));
-            },
-
-            stopScanner() {
-                if (this.scanner) {
-                    this.scanner.stop().then(() => {
-                        this.scanner.clear();
-                        this.scanner = null;
-                    }).catch(err => console.error("Failed to stop scanner", err));
-                }
-            },
-
-            handleScanSuccess(decodedText) {
-                // Format expected: JSON string { "id": "C001", "name": "Grade 9A", "subject": "Mathematics" }
-                try {
-                    const data = JSON.parse(decodedText);
-                    // Verify if this is a valid classroom
-                    const classrooms = Store.get('classrooms', []);
-                    const validClass = classrooms.find(c => c.id === data.id);
-
-                    if (validClass) {
-                        this.currentScannedClass = validClass;
-                        this.stopScanner(); // Stop scanning once found
-
-                        document.getElementById('scanned-class-name').textContent = validClass.name;
-                        document.getElementById('scanned-subject').textContent = validClass.subject;
-
-                        // Auto-detect period
-                        const currentPeriod = Schedule.getCurrentPeriod();
-                        const periodDisplay = document.getElementById('auto-period-display');
-
-                        if (currentPeriod) {
-                            periodDisplay.textContent = `Current: ${currentPeriod.name} (${currentPeriod.start} - ${currentPeriod.end})`;
-                            periodDisplay.className = "font-bold text-blue-800";
-                            if (currentPeriod.type === 'break') {
-                                periodDisplay.textContent = `Current: ${currentPeriod.name} (No Class)`;
-                                periodDisplay.className = "font-bold text-orange-800";
-                            }
-                        } else {
-                            periodDisplay.textContent = "No Active Period";
-                            periodDisplay.className = "font-bold text-red-800";
-                        }
-
-                        document.getElementById('scan-result').classList.remove('hidden');
-                        document.getElementById('reader').classList.add('hidden');
-                    } else {
-                        throw new Error("Classroom not found in system");
-                    }
-                } catch (e) {
-                    console.error(e);
-                    // Show error but keep scanning
-                    // alert("Invalid QR Code");
-                }
-            },
-
-            handleCheckIn(e) {
-                e.preventDefault();
-                const teacherId = document.getElementById('teacher-id-input').value.trim();
-
-                const currentPeriod = Schedule.getCurrentPeriod();
-
-                if (!currentPeriod) {
-                    alert("No active period found. Cannot check in.");
-                    return;
-                }
-
-                if (currentPeriod.type === 'break') {
-                    if (!confirm(`It is currently ${currentPeriod.name}. Do you want to check in anyway? (Will be recorded as ${currentPeriod.name})`)) {
-                        return;
-                    }
-                }
-
-                const teachers = Store.get('teachers', []);
-                const teacher = teachers.find(t => t.id === teacherId);
-
-                if (!teacher) {
-                    alert("Invalid Teacher ID");
-                    return;
-                }
-
-                // Validation: Does teacher subject match class subject?
-                if (teacher.subject !== this.currentScannedClass.subject) {
-                    if (!confirm(`Warning: Teacher subject (${teacher.subject}) does not match Class subject (${this.currentScannedClass.subject}). Continue?`)) {
-                        return;
-                    }
-                }
-
-                // Record Attendance
-                const now = new Date();
-                const statusInfo = Schedule.calculateStatus(currentPeriod, now);
-
-                const record = {
-                    id: Date.now(),
-                    teacherId: teacher.id,
-                    teacherName: teacher.name,
-                    className: this.currentScannedClass.name,
-                    subject: this.currentScannedClass.subject,
-                    period: currentPeriod.id,
-                    timestamp: now.getTime(),
-                    date: now.toISOString().split('T')[0],
-                    status: statusInfo.status
-                };
-
-                const attendance = Store.get('attendance', []);
-                attendance.push(record);
-                Store.set('attendance', attendance);
-
-                alert(`Check-in Successful for ${teacher.name} (${currentPeriod.name})!`);
-                this.navigateTo('landing');
-                document.getElementById('teacher-id-input').value = '';
+                sessionStorage.removeItem('userEmail');
+                this.navigateTo('login');
             },
 
             // --- DASHBOARD ---
-
-
             switchTab(tabId) {
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
@@ -602,12 +385,10 @@
                 if (tabId === 'overview') this.renderOverview();
                 if (tabId === 'matrix') this.renderMatrix();
                 if (tabId === 'teacher-stats') this.renderTeacherStats();
-                if (tabId === 'attendance') this.renderAttendanceTable();
                 if (tabId === 'admin') this.renderAdmin();
             },
 
             renderTeacherStats() {
-                // Populate Teacher Dropdown if empty
                 const teacherSelect = document.getElementById('stats-teacher-select');
                 if (teacherSelect.options.length === 1) {
                     const teachers = Store.get('teachers', []);
@@ -628,12 +409,9 @@
                 if (!selectedTeacherId) return;
 
                 const attendance = Store.get('attendance', []);
-
-                // --- LEFT PANEL: Daily Detail ---
                 const tbody = document.querySelector('#stats-daily-table tbody');
                 tbody.innerHTML = '';
 
-                // Use Schedule.periods, filtering out breaks if desired, or showing them
                 const periods = Schedule.periods.filter(p => p.type !== 'break');
 
                 periods.forEach(p => {
@@ -650,7 +428,6 @@
                         const recordDate = new Date(record.timestamp);
                         timeDisplay = recordDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-                        // Calculate Delay using Schedule logic
                         const statusInfo = Schedule.calculateStatus(p, recordDate);
                         const diffMins = statusInfo.delayMins;
 
@@ -672,13 +449,12 @@
                     `;
                 });
 
-                // --- RIGHT PANEL: Summary ---
                 const now = new Date();
                 let startDate = new Date();
                 if (summaryFilter === 'weekly') {
                     startDate.setDate(now.getDate() - 7);
                 } else {
-                    startDate.setDate(1); // Start of month
+                    startDate.setDate(1);
                 }
 
                 const summaryRecords = attendance.filter(r =>
@@ -711,21 +487,17 @@
             renderMatrix() {
                 const filterGrade = document.getElementById('matrix-grade').value;
                 const filterDate = document.getElementById('matrix-date').value || new Date().toISOString().split('T')[0];
-                document.getElementById('matrix-date').value = filterDate; // Ensure date input is set
+                document.getElementById('matrix-date').value = filterDate;
 
                 const classrooms = Store.get('classrooms', []);
                 const attendance = Store.get('attendance', []);
 
-                // Filter classrooms
                 const filteredClasses = classrooms.filter(c => !filterGrade || c.name.includes(`Grade ${filterGrade}`));
-
-                // Sort classes naturally (6A, 6B... 10A)
                 filteredClasses.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
 
                 const tbody = document.querySelector('#matrix-table tbody');
                 const thead = document.querySelector('#matrix-table thead tr');
 
-                // Dynamic Headers based on Schedule
                 const periods = Schedule.periods.filter(p => p.type !== 'break');
                 let headerHtml = '<th>Class</th>';
                 periods.forEach(p => {
@@ -739,7 +511,6 @@
                     let rowHtml = `<tr><td class="font-bold">${cls.name}</td>`;
 
                     periods.forEach(p => {
-                        // Find record for this class, period, and date
                         const record = attendance.find(r =>
                             r.className === cls.name &&
                             r.date === filterDate &&
@@ -767,7 +538,6 @@
 
             renderDashboard() {
                 this.renderOverview();
-                this.renderAttendanceTable();
                 this.renderAdmin();
             },
 
@@ -778,88 +548,54 @@
 
                 const todayRecords = attendance.filter(r => r.date === today);
 
-                // Stats
-                // Stats
                 document.getElementById('stat-on-time').textContent = todayRecords.filter(r => r.status === 'On Time').length;
                 document.getElementById('stat-late').textContent = todayRecords.filter(r => r.status === 'Late').length;
                 document.getElementById('stat-absent').textContent = teachers.length - new Set(todayRecords.map(r => r.teacherId)).size;
 
-                // Recent Activity
-                const recentList = document.getElementById('recent-activity-list');
-                recentList.innerHTML = '';
-                [...attendance].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5).forEach(r => {
-                    const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    recentList.innerHTML += `
-                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded">
-                            <div>
-                                <div class="font-semibold">${r.teacherName}</div>
-                                <div class="text-xs text-gray-500">${r.className} • ${r.subject}</div>
-                            </div>
-                            <div class="text-right">
-                                <div class="font-bold text-primary">${time}</div>
-                                <div class="text-xs ${r.status === 'Late' ? 'text-red-500' : 'text-green-500'}">${r.status}</div>
-                            </div>
-                        </div>
-                    `;
-                });
-
                 // Chart
-                this.renderChart(attendance);
-            },
-
-            renderChart(attendance) {
                 const ctx = document.getElementById('chart-attendance').getContext('2d');
-                // Group by date (last 7 days)
+                if (this.chart) this.chart.destroy();
+
                 const last7Days = [...Array(7)].map((_, i) => {
                     const d = new Date();
                     d.setDate(d.getDate() - i);
                     return d.toISOString().split('T')[0];
                 }).reverse();
 
-                const data = last7Days.map(date => {
-                    return attendance.filter(r => r.date === date).length;
-                });
+                const data = last7Days.map(date => attendance.filter(r => r.date === date).length);
 
-                if (window.myChart) window.myChart.destroy();
-                window.myChart = new Chart(ctx, {
-                    type: 'bar',
+                this.chart = new Chart(ctx, {
+                    type: 'line',
                     data: {
-                        labels: last7Days.map(d => d.slice(5)), // MM-DD
+                        labels: last7Days,
                         datasets: [{
                             label: 'Check-ins',
                             data: data,
-                            backgroundColor: '#4F46E5',
-                            borderRadius: 4
+                            borderColor: '#800000',
+                            tension: 0.4
                         }]
                     },
-                    options: {
-                        responsive: true,
-                        plugins: { legend: { display: false } },
-                        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
-                    }
+                    options: { responsive: true }
                 });
-            },
 
-            renderAttendanceTable() {
-                const filterDate = document.getElementById('filter-date').value;
-                const attendance = Store.get('attendance', []);
-                const filtered = attendance.filter(r => !filterDate || r.date === filterDate);
+                // Recent Activity
+                const list = document.getElementById('recent-activity-list');
+                list.innerHTML = '';
+                const recent = [...attendance].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
-                const tbody = document.querySelector('#attendance-table tbody');
-                tbody.innerHTML = '';
-
-                filtered.sort((a, b) => b.timestamp - a.timestamp).forEach(r => {
+                recent.forEach(r => {
                     const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const badgeClass = r.status === 'Late' ? 'badge-warning' : 'badge-success';
-
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${time}</td>
-                            <td>${r.teacherName}</td>
-                            <td>${r.className}</td>
-                            <td>${r.subject}</td>
-                            <td><span class="badge ${badgeClass}">${r.status}</span></td>
-                        </tr>
+                    list.innerHTML += `
+                        <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                            <div>
+                                <div class="font-bold text-sm">${r.teacherName}</div>
+                                <div class="text-xs text-gray-500">${r.className} • ${r.subject}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-sm">${time}</div>
+                                <div class="text-xs ${r.status === 'Late' ? 'text-red-600' : 'text-green-600'}">${r.status}</div>
+                            </div>
+                        </div>
                     `;
                 });
             },
@@ -875,9 +611,7 @@
                             <td>${t.id}</td>
                             <td>${t.name}</td>
                             <td>${t.subject}</td>
-                            <td>
-                                <button onclick="app.deleteItem('teachers', '${t.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                            </td>
+                            <td><button onclick="app.deleteItem('teachers', '${t.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
                         </tr>
                     `;
                 });
@@ -891,12 +625,8 @@
                         <tr>
                             <td>${c.name}</td>
                             <td>${c.subject}</td>
-                            <td>
-                                <button onclick="app.showQR('${c.id}')" class="text-primary hover:text-primary-dark mr-2"><i class="fas fa-qrcode"></i></button>
-                            </td>
-                            <td>
-                                <button onclick="app.deleteItem('classrooms', '${c.id}')" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
-                            </td>
+                            <td><button onclick="app.showQR('${c.id}')" class="text-blue-600"><i class="fas fa-qrcode"></i></button></td>
+                            <td><button onclick="app.deleteItem('classrooms', '${c.id}')" class="text-red-600"><i class="fas fa-trash"></i></button></td>
                         </tr>
                     `;
                 });
@@ -904,88 +634,61 @@
 
             // --- ADMIN ACTIONS ---
             openModal(type) {
-                const modal = document.getElementById('modal-overlay');
-                const title = document.getElementById('modal-title');
-                const fields = document.getElementById('modal-fields');
-                const form = document.getElementById('modal-form');
-
-                modal.classList.add('open');
+                document.getElementById('modal-overlay').classList.add('active');
+                const form = document.getElementById('modal-fields');
                 form.dataset.type = type;
+                document.getElementById('modal-title').textContent = type === 'teacher' ? 'Add Teacher' : 'Add Classroom';
 
                 if (type === 'teacher') {
-                    title.textContent = 'Add Teacher';
-                    fields.innerHTML = `
-                        <input type="text" name="id" class="input" placeholder="Teacher ID (e.g. T006)" required>
+                    form.innerHTML = `
+                        <input type="text" name="id" class="input" placeholder="Teacher ID (e.g. T001)" required>
                         <input type="text" name="name" class="input" placeholder="Full Name" required>
                         <input type="text" name="subject" class="input" placeholder="Subject" required>
                     `;
                 } else {
-                    title.textContent = 'Add Classroom';
-                    fields.innerHTML = `
-                        <input type="text" name="id" class="input" placeholder="Class ID (e.g. C004)" required>
-                        <input type="text" name="name" class="input" placeholder="Class Name (e.g. Grade 12A)" required>
-                        <input type="text" name="subject" class="input" placeholder="Subject" required>
+                    form.innerHTML = `
+                        <input type="text" name="id" class="input" placeholder="Class ID (e.g. C001)" required>
+                        <input type="text" name="name" class="input" placeholder="Class Name (e.g. Grade 10A)" required>
+                        <input type="text" name="subject" class="input" placeholder="Subject (e.g. Mathematics)" required>
                     `;
                 }
             },
 
             closeModal() {
-                document.getElementById('modal-overlay').classList.remove('open');
+                document.getElementById('modal-overlay').classList.remove('active');
             },
 
             handleModalSubmit(e) {
                 e.preventDefault();
-                const type = e.target.dataset.type;
-                const formData = new FormData(e.target);
-                const data = Object.fromEntries(formData.entries());
+                const form = document.getElementById('modal-fields');
+                const type = form.dataset.type;
+                const inputs = form.querySelectorAll('input');
+                const data = {};
+                inputs.forEach(i => data[i.name] = i.value);
 
-                if (type === 'teacher') {
-                    const teachers = Store.get('teachers', []);
-                    teachers.push(data);
-                    Store.set('teachers', teachers);
-                } else {
-                    const classrooms = Store.get('classrooms', []);
-                    classrooms.push(data);
-                    Store.set('classrooms', classrooms);
-                }
+                const key = type === 'teacher' ? 'teachers' : 'classrooms';
+                const items = Store.get(key, []);
+                items.push(data);
+                Store.set(key, items);
 
                 this.closeModal();
                 this.renderAdmin();
-                this.renderOverview(); // Update stats
             },
 
-            deleteItem(collection, id) {
+            deleteItem(key, id) {
                 if (confirm('Are you sure?')) {
-                    const items = Store.get(collection, []);
+                    const items = Store.get(key, []);
                     const newItems = items.filter(i => i.id !== id);
-                    Store.set(collection, newItems);
+                    Store.set(key, newItems);
                     this.renderAdmin();
-                    this.renderOverview();
                 }
             },
 
             resetSystem() {
-                if (confirm('WARNING: This will delete ALL data. Are you sure?')) {
+                if (confirm('DANGER: This will wipe all data. Continue?')) {
                     localStorage.clear();
                     location.reload();
                 }
-            },
-
-            // --- EXPORT & PRINT ---
-            exportData() {
-                const attendance = Store.get('attendance', []);
-                let csv = 'Date,Time,Teacher,Class,Subject,Status\n';
-                attendance.forEach(r => {
-                    const time = new Date(r.timestamp).toLocaleTimeString();
-                    csv += `${r.date},${time},${r.teacherName},${r.className},${r.subject},${r.status}\n`;
-                });
-
-                const blob = new Blob([csv], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'attendance_report.csv';
-                a.click();
             },
 
             showQR(classId) {
@@ -993,58 +696,59 @@
                 const cls = classrooms.find(c => c.id === classId);
                 if (!cls) return;
 
-                // Create a temporary modal to show QR
-                const qrData = JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject });
+                // Create a temporary modal for QR
+                const div = document.createElement('div');
+                div.className = 'modal-overlay active';
+                div.innerHTML = `
+                    <div class="modal text-center">
+                        <h3 class="font-bold mb-4">${cls.name} - ${cls.subject}</h3>
+                        <div id="qrcode-display" class="flex justify-center mb-4"></div>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="btn btn-secondary">Close</button>
+                    </div>
+                `;
+                document.body.appendChild(div);
 
-                // We'll reuse the modal overlay but inject custom content
-                const modal = document.getElementById('modal-overlay');
-                const fields = document.getElementById('modal-fields');
-                document.getElementById('modal-title').textContent = `QR Code: ${cls.name}`;
-                document.getElementById('modal-form').onsubmit = (e) => { e.preventDefault(); this.closeModal(); }; // Just close
-
-                fields.innerHTML = `<div id="qrcode-display" class="flex justify-center p-4"></div>`;
-                modal.classList.add('open');
-
-                // Wait for DOM update
-                setTimeout(() => {
-                    document.getElementById('qrcode-display').innerHTML = '';
-                    new QRCode(document.getElementById("qrcode-display"), {
-                        text: qrData,
-                        width: 200,
-                        height: 200
-                    });
-                }, 100);
+                new QRCode(div.querySelector('#qrcode-display'), {
+                    text: JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject }),
+                    width: 200,
+                    height: 200
+                });
             },
 
             printQRCodes() {
                 const classrooms = Store.get('classrooms', []);
                 const printArea = document.getElementById('print-area');
                 printArea.innerHTML = '';
+                printArea.classList.remove('hidden');
 
                 classrooms.forEach(cls => {
-                    const div = document.createElement('div');
-                    div.className = 'qr-print-card';
-                    div.innerHTML = `
+                    const container = document.createElement('div');
+                    container.className = 'qr-print-item';
+                    container.innerHTML = `
                         <h3>${cls.name}</h3>
                         <p>${cls.subject}</p>
-                        <div id="qr-${cls.id}" style="display:inline-block; margin: 10px;"></div>
+                        <div class="qr-code"></div>
                     `;
-                    printArea.appendChild(div);
+                    printArea.appendChild(container);
 
-                    new QRCode(document.getElementById(`qr-${cls.id}`), {
+                    new QRCode(container.querySelector('.qr-code'), {
                         text: JSON.stringify({ id: cls.id, name: cls.name, subject: cls.subject }),
                         width: 150,
                         height: 150
                     });
                 });
 
-                setTimeout(() => window.print(), 500);
+                setTimeout(() => {
+                    window.print();
+                    printArea.classList.add('hidden');
+                }, 500);
             }
         };
 
-        // Initialize App
-        window.app = App;
-        App.init();
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            app.init();
+        });
     </script>
 </body>
 
