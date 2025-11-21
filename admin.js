@@ -636,33 +636,58 @@ const app = {
         const cls = classrooms.find(c => c.id === classId);
         if (!cls) return;
 
-        // Create a temporary container for the QR code (hidden)
-        const tempContainer = document.createElement('div');
-        tempContainer.style.display = 'none';
-        tempContainer.id = 'temp-qr-container';
-        document.body.appendChild(tempContainer);
+        // Create a temporary hidden container for the poster
+        const posterContainer = document.createElement('div');
+        posterContainer.style.position = 'fixed';
+        posterContainer.style.top = '-9999px'; // off-screen
+        posterContainer.style.left = '-9999px';
+        posterContainer.style.padding = '20px';
+        posterContainer.style.background = 'white';
+        posterContainer.style.border = '4px solid #800000';
+        posterContainer.style.borderRadius = '12px';
+        posterContainer.style.textAlign = 'center';
+        posterContainer.id = 'temp-poster-container';
+        document.body.appendChild(posterContainer);
 
-        // Generate QR Code
+        // Title (class name)
+        const title = document.createElement('h2');
+        title.textContent = cls.name;
+        title.style.fontSize = '32px';
+        title.style.fontWeight = '700';
+        title.style.marginBottom = '20px';
+        posterContainer.appendChild(title);
+
+        // QR code container
+        const qrDiv = document.createElement('div');
+        qrDiv.id = 'qr-poster-display';
+        posterContainer.appendChild(qrDiv);
+
+        // Generate QR code (link to teacher page)
         const teacherPageUrl = `https://zahiramaw.github.io/class/teacher/?classroom=${cls.id}`;
-        const qr = new QRCode(tempContainer, {
+        new QRCode(qrDiv, {
             text: teacherPageUrl,
-            width: 512,  // Higher resolution for download
-            height: 512
+            width: 300,
+            height: 300,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H
         });
 
-        // Wait for QR code to be generated, then download
+        // Wait a moment for QR to render, then capture with html2canvas
         setTimeout(() => {
-            const canvas = tempContainer.querySelector('canvas');
-            if (canvas) {
-                // Create download link
+            // @ts-ignore - html2canvas is loaded via CDN
+            html2canvas(posterContainer).then(canvas => {
                 const link = document.createElement('a');
-                link.download = `QR_${cls.name.replace(/\s+/g, '_')}_${cls.id}.png`;
+                link.download = `Poster_${cls.name.replace(/\s+/g, '_')}_${cls.id}.png`;
                 link.href = canvas.toDataURL('image/png');
                 link.click();
-            }
-            // Clean up
-            tempContainer.remove();
-        }, 100);
+                // Clean up
+                posterContainer.remove();
+            }).catch(err => {
+                console.error('Failed to capture poster:', err);
+                posterContainer.remove();
+            });
+        }, 200);
     },
 
     printQRCodes() {
