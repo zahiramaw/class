@@ -33,7 +33,7 @@
                     class="p-4 bg-gradient-to-r from-red-50 to-blue-50 border border-gray-200 rounded mb-4 text-center">
                     <p class="text-gray-600 text-sm mb-1">Classroom</p>
                     <p class="text-2xl font-bold mb-1" style="color: #800000;" id="display-class-name">Loading...</p>
-                    <p class="text-sm text-gray-600" id="display-subject">-</p>
+                    <p class="text-sm text-gray-600 hidden" id="display-subject">-</p>
                 </div>
 
                 <!-- Period Info -->
@@ -157,7 +157,7 @@
 
                 // Display classroom info
                 document.getElementById('display-class-name').textContent = this.currentClassroom.name;
-                document.getElementById('display-subject').textContent = this.currentClassroom.subject || 'General';
+                // document.getElementById('display-subject').textContent = this.currentClassroom.subject || 'General';
 
                 // Auto-detect and display current period
                 this.updatePeriodDisplay();

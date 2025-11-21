@@ -437,7 +437,6 @@ const app = {
             form.innerHTML = `
                 <input type="text" name="id" class="input" placeholder="Class ID (e.g. C001)" required>
                 <input type="text" name="name" class="input" placeholder="Class Name (e.g. Grade 10A)" required>
-                <input type="text" name="subject" class="input" placeholder="Subject (e.g. Mathematics)" required>
             `;
         }
     },
@@ -480,6 +479,39 @@ const app = {
         if (confirm('DANGER: This will wipe all local data (not cloud). Continue?')) {
             localStorage.clear();
             location.reload();
+        }
+    },
+
+    async populateClasses() {
+        if (!confirm('This will add classes from Grade 6 to 11 (Sections A-E2). Continue?')) return;
+
+        const grades = [6, 7, 8, 9, 10, 11];
+        const sections = ['A', 'B', 'C', 'D', 'E1', 'E2'];
+        let count = 0;
+        let idCounter = 1;
+
+        // Find the highest existing ID to avoid conflicts if possible, 
+        // but for simplicity we'll just try to add and let Firestore handle it 
+        // (or overwrite if we use specific IDs).
+        // Let's use a smart ID generation: C + 3 digits.
+
+        try {
+            for (const grade of grades) {
+                for (const section of sections) {
+                    const name = `Grade ${grade}${section}`;
+                    const id = `C${String(idCounter++).padStart(3, '0')}`;
+
+                    // Check if exists (optional, but good for preventing overwrites of custom data)
+                    // For now, we just set/overwrite to ensure they exist
+                    await Store.add('classrooms', { id, name });
+                    count++;
+                }
+            }
+            alert(`Successfully added ${count} classes!`);
+            this.renderAdmin();
+        } catch (e) {
+            console.error(e);
+            alert('Error populating classes: ' + e.message);
         }
     },
 
