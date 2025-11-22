@@ -145,6 +145,14 @@ const app = {
             this.navigateTo('login');
         }
 
+        // Initialize dates globally
+        const today = new Date().toLocaleDateString('en-CA');
+        const statsDate = document.getElementById('stats-date');
+        if (statsDate && !statsDate.value) statsDate.value = today;
+
+        const matrixDate = document.getElementById('matrix-date');
+        if (matrixDate && !matrixDate.value) matrixDate.value = today;
+
         // Seed data if needed (background)
         Store.seedIfEmpty();
     },
