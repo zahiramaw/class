@@ -619,11 +619,11 @@ const app = {
         try {
             // 1. Create Sample Teachers
             const teachers = [
-                { id: 'T_TEST_01', name: 'Test Teacher 1', subject: 'Math' },
-                { id: 'T_TEST_02', name: 'Test Teacher 2', subject: 'Science' },
-                { id: 'T_TEST_03', name: 'Test Teacher 3', subject: 'English' },
-                { id: 'T_TEST_04', name: 'Test Teacher 4', subject: 'History' },
-                { id: 'T_TEST_05', name: 'Test Teacher 5', subject: 'Art' }
+                { id: '101', name: 'Mr. Ahmed', subject: 'Mathematics' },
+                { id: '102', name: 'Ms. Fatima', subject: 'Science' },
+                { id: '103', name: 'Mr. Rizwan', subject: 'English' },
+                { id: '104', name: 'Ms. Ayesha', subject: 'History' },
+                { id: '105', name: 'Mr. Zaid', subject: 'Geography' }
             ];
 
             for (const t of teachers) {
