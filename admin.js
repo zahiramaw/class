@@ -871,7 +871,7 @@ const app = {
         document.body.appendChild(overlay);
 
         // Generate QR Code with URL
-        const teacherPageUrl = `https://zahiramaw.github.io/class/teacher/?classroom=${cls.id}`;
+        const teacherPageUrl = `https://zahiramaw.github.io/Track/teacher/?classroom=${cls.id}`;
         new QRCode(overlay.querySelector('#qr-poster-display'), {
             text: teacherPageUrl,
             width: 300,

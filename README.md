@@ -4,8 +4,8 @@ A modern, cloud-connected teacher attendance tracking system with QR code scanni
 
 ## 🌐 Live URLs
 
-- **Admin Portal**: https://zahiramaw.github.io/class/admin/
-- **Teacher Scanner**: https://zahiramaw.github.io/class/teacher/
+- **Admin Portal**: https://zahiramaw.github.io/Track/admin/
+- **Teacher Scanner**: https://zahiramaw.github.io/Track/teacher/
 
 ## 📋 Features
 
@@ -51,7 +51,7 @@ git commit -m "Your commit message"
 git push origin main
 ```
 
-Changes will be live at https://zahiramaw.github.io/class/ within a few minutes.
+Changes will be live at https://zahiramaw.github.io/Track/ within a few minutes.
 
 ## 🛠️ Development
 
