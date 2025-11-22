@@ -165,6 +165,7 @@ const app = {
         'raashid.mm@gmail.com',
         'raashidmansoor@gmail.com',
         'relaugh@gmail.com',
+        'safwanmoha@gmail.com',
     ],
 
     handleGoogleLogin(response) {
