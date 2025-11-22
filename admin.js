@@ -161,8 +161,27 @@ const app = {
         const matrixDate = document.getElementById('matrix-date');
         if (matrixDate && !matrixDate.value) matrixDate.value = today;
 
+        // Pre-populate teachers to ensure dropdown isn't empty
+        await this.populateTeacherSelect();
+
         // Seed data if needed (background)
         Store.seedIfEmpty();
+    },
+
+    async populateTeacherSelect() {
+        const teacherSelect = document.getElementById('stats-teacher-select');
+        if (!teacherSelect || teacherSelect.options.length > 1) return;
+
+        const teachers = await Store.get('teachers');
+        // Sort teachers alphabetically
+        teachers.sort((a, b) => a.name.localeCompare(b.name));
+
+        teachers.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.name;
+            teacherSelect.appendChild(opt);
+        });
     },
 
     navigateTo(viewId) {
@@ -230,15 +249,12 @@ const app = {
 
         const teacherSelect = document.getElementById('stats-teacher-select');
 
-        // Populate select if empty
-        if (teacherSelect.options.length === 1) {
-            const teachers = await Store.get('teachers');
-            teachers.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.id; // This is the document ID (or custom ID)
-                opt.textContent = t.name;
-                teacherSelect.appendChild(opt);
-            });
+        // Ensure populated
+        await this.populateTeacherSelect();
+
+        // Auto-select first teacher if none selected
+        if (!teacherSelect.value && teacherSelect.options.length > 1) {
+            teacherSelect.selectedIndex = 1; // Index 0 is the disabled "Select a Teacher"
         }
 
         const selectedTeacherId = teacherSelect.value;
