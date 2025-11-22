@@ -244,10 +244,12 @@ const app = {
 
             let timeDisplay = '-';
             let lateDisplay = '-';
+            let classDisplay = '-';
 
             if (record) {
                 const recordDate = new Date(record.timestamp);
                 timeDisplay = recordDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                classDisplay = record.className || '-';
 
                 const statusInfo = Schedule.calculateStatus(p, recordDate);
                 const diffMins = statusInfo.delayMins;
@@ -264,6 +266,7 @@ const app = {
             tbody.innerHTML += `
                 <tr>
                     <td class="font-medium">${p.name}</td>
+                    <td>${classDisplay}</td>
                     <td class="font-bold">${timeDisplay}</td>
                     <td>${lateDisplay}</td>
                 </tr>
