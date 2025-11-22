@@ -20,6 +20,21 @@
     <script src="schedule.js"></script>
     <link rel="stylesheet" href="styles.css">
 
+    <!-- Define global callback immediately to satisfy GSI -->
+    <script>
+        window.handleGoogleLogin = function (response) {
+            if (window.app) {
+                window.app.handleGoogleLogin(response);
+            } else {
+                console.error("App not ready yet");
+                // Retry once after a short delay in case app is just initializing
+                setTimeout(() => {
+                    if (window.app) window.app.handleGoogleLogin(response);
+                }, 500);
+            }
+        };
+    </script>
+
 </head>
 
 <body>
