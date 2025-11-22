@@ -137,6 +137,14 @@ const Store = {
 const app = {
     chart: null,
 
+    getTodayDate() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    },
+
     async init() {
         // Check if already logged in
         if (sessionStorage.getItem('isLoggedIn')) {
@@ -146,7 +154,7 @@ const app = {
         }
 
         // Initialize dates globally
-        const today = new Date().toLocaleDateString('en-CA');
+        const today = this.getTodayDate();
         const statsDate = document.getElementById('stats-date');
         if (statsDate && !statsDate.value) statsDate.value = today;
 
@@ -216,7 +224,7 @@ const app = {
         // Initialize date to today if empty
         const dateInput = document.getElementById('stats-date');
         if (!dateInput.value) {
-            dateInput.value = new Date().toLocaleDateString('en-CA');
+            dateInput.value = this.getTodayDate();
         }
         const selectedDate = dateInput.value;
 
@@ -324,7 +332,7 @@ const app = {
 
     async renderMatrix() {
         const filterGrade = document.getElementById('matrix-grade').value;
-        const filterDate = document.getElementById('matrix-date').value || new Date().toLocaleDateString('en-CA');
+        const filterDate = document.getElementById('matrix-date').value || this.getTodayDate();
         document.getElementById('matrix-date').value = filterDate;
 
         const classrooms = await Store.get('classrooms');
