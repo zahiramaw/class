@@ -222,7 +222,9 @@ const app = {
         const dateInput = document.getElementById('stats-date');
         if (!dateInput.value) dateInput.value = new Date().toLocaleDateString('en-CA');
         const selectedDate = dateInput.value;
-        const summaryFilter = document.getElementById('stats-period-filter').value;
+
+        // Default to monthly summary since filter was removed
+        const summaryFilter = 'monthly';
 
         if (!selectedTeacherId) return;
 
