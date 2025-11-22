@@ -164,6 +164,9 @@ const app = {
         // Pre-populate teachers to ensure dropdown isn't empty
         await this.populateTeacherSelect();
 
+        // Pre-fetch classrooms to ensure Matrix view works immediately
+        await Store.get('classrooms');
+
         // Seed data if needed (background)
         Store.seedIfEmpty();
     },
