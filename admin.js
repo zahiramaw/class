@@ -205,6 +205,18 @@ const app = {
     },
 
     async renderTeacherStats() {
+        // Initialize date to today if empty
+        const dateInput = document.getElementById('stats-date');
+        if (!dateInput.value) {
+            const localDate = new Date();
+            // Format as YYYY-MM-DD using local time
+            const year = localDate.getFullYear();
+            const month = String(localDate.getMonth() + 1).padStart(2, '0');
+            const day = String(localDate.getDate()).padStart(2, '0');
+            dateInput.value = `${year}-${month}-${day}`;
+        }
+        const selectedDate = dateInput.value;
+
         const teacherSelect = document.getElementById('stats-teacher-select');
 
         // Populate select if empty
@@ -219,9 +231,6 @@ const app = {
         }
 
         const selectedTeacherId = teacherSelect.value;
-        const dateInput = document.getElementById('stats-date');
-        if (!dateInput.value) dateInput.value = new Date().toLocaleDateString('en-CA');
-        const selectedDate = dateInput.value;
 
         // Default to monthly summary since filter was removed
         const summaryFilter = 'monthly';
