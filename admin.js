@@ -1,9 +1,6 @@
 import { db, collection, getDocs, addDoc, query, where, doc, setDoc, deleteDoc } from './firebase-init.js';
 
-// Global callback for Google Auth (needs to be attached to window because it's called by Google script)
-window.handleGoogleLogin = function (response) {
-    app.handleGoogleLogin(response);
-};
+// Global callback for Google Auth is handled in index.html shim
 
 // --- DATA STORE (Firebase Adapter) ---
 const Store = {
