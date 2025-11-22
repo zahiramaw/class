@@ -235,7 +235,7 @@ const app = {
         const tbody = document.querySelector('#stats-daily-table tbody');
         tbody.innerHTML = '';
 
-        const periods = Schedule.periods.filter(p => p.type !== 'break');
+        const periods = Schedule.getPeriods(new Date(selectedDate)).filter(p => p.type !== 'break');
 
         periods.forEach(p => {
             const record = dailyAttendance.find(r =>
@@ -291,9 +291,9 @@ const app = {
         let late20Count = 0;
 
         teacherRecords.forEach(r => {
-            const period = Schedule.periods.find(p => String(p.id) === String(r.period));
+            const rDate = new Date(r.timestamp);
+            const period = Schedule.getPeriods(rDate).find(p => String(p.id) === String(r.period));
             if (period && period.type !== 'break') {
-                const rDate = new Date(r.timestamp);
                 const statusInfo = Schedule.calculateStatus(period, rDate);
                 const diffMins = statusInfo.delayMins;
 
@@ -323,7 +323,7 @@ const app = {
         const tbody = document.querySelector('#matrix-table tbody');
         const thead = document.querySelector('#matrix-table thead tr');
 
-        const periods = Schedule.periods.filter(p => p.type !== 'break');
+        const periods = Schedule.getPeriods(new Date(filterDate)).filter(p => p.type !== 'break');
         let headerHtml = '<th>Class</th>';
         periods.forEach(p => {
             headerHtml += `<th>P${p.id}</th>`;
@@ -608,7 +608,7 @@ const app = {
 
             // 3. Generate Attendance for last 7 days
             const today = new Date();
-            const periods = Schedule.periods.filter(p => p.type !== 'break'); // Only class periods
+            // const periods = Schedule.periods.filter(p => p.type !== 'break'); // Moved inside loop
 
             let recordCount = 0;
 
@@ -619,6 +619,8 @@ const app = {
 
                 // Skip weekends (0 = Sunday, 6 = Saturday)
                 if (date.getDay() === 0 || date.getDay() === 6) continue;
+
+                const periods = Schedule.getPeriods(date).filter(p => p.type !== 'break');
 
                 for (const t of teachers) {
                     for (const p of periods) {
