@@ -366,6 +366,7 @@ const app = {
 
     async renderOverview() {
         const teachers = await Store.get('teachers');
+        const classrooms = await Store.get('classrooms');
         const today = new Date().toLocaleDateString('en-CA');
 
         // Optimized: Fetch ONLY today's attendance for stats
@@ -378,58 +379,73 @@ const app = {
         const checkedInTeacherIds = new Set(todayRecords.map(r => r.teacherId));
         document.getElementById('stat-absent').textContent = Math.max(0, teachers.length - checkedInTeacherIds.size);
 
-        // Chart - Optimized: Fetch last 7 days only
-        const ctx = document.getElementById('chart-attendance').getContext('2d');
-        if (this.chart) this.chart.destroy();
-
-        const last7Days = [...Array(7)].map((_, i) => {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            return d.toISOString().split('T')[0];
-        }).reverse();
-
-        // Fetch range for chart
-        const rangeRecords = await Store.getAttendanceByRange(last7Days[0], last7Days[6]);
-
-        const data = last7Days.map(date => rangeRecords.filter(r => r.date === date).length);
-
-        this.chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: last7Days,
-                datasets: [{
-                    label: 'Check-ins',
-                    data: data,
-                    borderColor: '#800000',
-                    tension: 0.4
-                }]
-            },
-            options: { responsive: true }
-        });
-
-        // Recent Activity - Use today's records or fetch small batch
-        // For simplicity, we use today's records if available, or just the range records
-        // Ideally we'd query "orderBy timestamp desc limit 5" but that requires an index
-        // Let's use the range records we already have
-        const list = document.getElementById('recent-activity-list');
+        // --- UNATTENDED CLASSES LOGIC ---
+        const currentPeriod = Schedule.getCurrentPeriod();
+        const badge = document.getElementById('current-period-badge');
+        const list = document.getElementById('unattended-list');
         list.innerHTML = '';
-        const recent = [...rangeRecords].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
 
-        recent.forEach(r => {
-            const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            list.innerHTML += `
-                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                    <div>
-                        <div class="font-bold text-sm">${r.teacherName}</div>
-                        <div class="text-xs text-gray-500">${r.className} • ${r.subject}</div>
+        if (!currentPeriod || currentPeriod.type === 'break') {
+            badge.textContent = currentPeriod ? currentPeriod.name : 'After Hours';
+            badge.className = 'px-2 py-1 bg-gray-200 rounded text-xs font-bold text-gray-600';
+            list.innerHTML = `<div class="text-gray-500 text-sm col-span-full text-center py-4">
+                ${currentPeriod ? 'Currently in Break/Interval' : 'School is closed'}
+            </div>`;
+        } else {
+            badge.textContent = currentPeriod.name;
+            badge.className = 'px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold';
+
+            // Find classes that have a record for THIS period
+            const attendedClassNames = new Set(
+                todayRecords
+                    .filter(r => String(r.period) === String(currentPeriod.id))
+                    .map(r => r.className)
+            );
+
+            // Filter classrooms that are NOT in the attended set
+            // Sort numerically/alphabetically
+            const unattended = classrooms
+                .filter(c => !attendedClassNames.has(c.name))
+                .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' }));
+
+            if (unattended.length === 0) {
+                list.innerHTML = `<div class="text-green-600 text-sm col-span-full text-center py-4 font-bold">
+                    <i class="fas fa-check-circle"></i> All classes attended!
+                </div>`;
+            } else {
+                unattended.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 bg-red-50 border border-red-100 rounded text-center text-red-700 font-bold text-sm';
+                    div.textContent = c.name;
+                    list.appendChild(div);
+                });
+            }
+        }
+
+        // Recent Activity
+        const activityList = document.getElementById('recent-activity-list');
+        activityList.innerHTML = '';
+        const recent = [...todayRecords].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5);
+
+        if (recent.length === 0) {
+            activityList.innerHTML = '<div class="text-gray-400 text-sm text-center">No activity today</div>';
+        } else {
+            recent.forEach(r => {
+                const time = new Date(r.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                activityList.innerHTML += `
+                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                        <div>
+                            <div class="font-bold text-sm">${r.teacherName}</div>
+                            <div class="text-xs text-gray-500">${r.className} • ${r.subject}</div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-sm">${time}</div>
+                            <div class="text-xs ${r.status === 'Late' ? 'text-red-600' : 'text-green-600'}">${r.status}</div>
+                        </div>
                     </div>
-                    <div class="text-right">
-                        <div class="font-bold text-sm">${time}</div>
-                        <div class="text-xs ${r.status === 'Late' ? 'text-red-600' : 'text-green-600'}">${r.status}</div>
-                    </div>
-                </div>
-            `;
-        });
+                `;
+            });
+        }
     },
 
     async renderAdmin() {
